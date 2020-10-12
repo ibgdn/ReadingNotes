@@ -840,3 +840,46 @@
 ### 3.2 让性能飞起来：学习堆的配置参数
 #### 3.2.1 最大堆和初始堆的设置
   Java 进程启动时，虚拟机就会分配一块初始堆空间（可以通过参数`-Xms`指定初始堆空间大小）。虚拟机会尽量维持在初始堆空间的范围内运行，如果初始堆空间耗尽，虚拟机会对堆空间扩展，上限为最大堆空间（用参数`-Xmx`设置）。
+
+  Heap 空间大小及关系：[HeapAlloc](../java/com/ibgdn/chapter_3/HeapAlloc.java)
+  VM options：
+  ```
+  -Xmx20m -Xms5m -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseSerialGC
+  ```
+  输出结果：
+  ```
+  -XX:InitialHeapSize=5242880 -XX:MaxHeapSize=20971520 -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:+UseSerialGC 
+  Connected to the target VM, address: '127.0.0.1:14432', transport: 'socket'
+  [GC (Allocation Failure) [DefNew: 1654K->192K(1856K), 0.0024365 secs] 1654K->689K(5952K), 0.0025023 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  Max  Memory : 20316160 bytes
+  Free  Memory: 4976232 bytes
+  Total Memory: 6094848 bytes
+  
+  分配了 1M 空间给数组 bytes
+  Max  Memory : 20316160 bytes
+  Free  Memory: 3927640 bytes
+  Total Memory: 6094848 bytes
+  
+  [GC (Allocation Failure) [DefNew: 1618K->35K(1856K), 0.0013357 secs][Tenured: 1689K->1724K(4096K), 0.0021330 secs] 2116K->1724K(5952K), [Metaspace: 3045K->3045K(1056768K)], 0.0035423 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  分配了 4M 空间给数组 bytes
+  Max  Memory : 20316160 bytes
+  Free  Memory: 4310296 bytes
+  Total Memory: 10358784 bytes
+  
+  Heap
+   def new generation   total 1920K, used 120K [0x00000000fec00000, 0x00000000fee10000, 0x00000000ff2a0000)
+    eden space 1728K,   6% used [0x00000000fec00000, 0x00000000fec1e360, 0x00000000fedb0000)
+    from space 192K,   0% used [0x00000000fedb0000, 0x00000000fedb0000, 0x00000000fede0000)
+    to   space 192K,   0% used [0x00000000fede0000, 0x00000000fede0000, 0x00000000fee10000)
+   tenured generation   total 8196K, used 5820K [0x00000000ff2a0000, 0x00000000ffaa1000, 0x0000000100000000)
+     the space 8196K,  71% used [0x00000000ff2a0000, 0x00000000ff84f338, 0x00000000ff84f400, 0x00000000ffaa1000)
+   Metaspace       used 3054K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+  当前最大内存由`-XX:MaxHeapSize=209711520`指定，正好是`20*1024*1024=20971520`字节。输出的最大可用内存仅为20316160字节，比设定值略少。
+
+  这是因为分配给堆的内存空间和实际可用内存空间并非一个概念。由于垃圾回收的需要，虚拟机会对堆空间进行分区管理，不同的区域采用不同的回收算法，一些算法会使用空间换时间的策略工作，因此会存在可用内存的损失。实际可用内存会浪费大小等于 from/to 的空间。
+
+  from 大小为`0x00000000fede0000 - 0x00000000fedb0000 = 0x0000000000030000 = 196608`字节，`20971520 - 196608 = 20774912 ≠ 20136160`。出现偏差是由于虚拟机内部没有直接使用新生代 from/to 的大小，进一步对它们做了对其操作。
+
+  **在实际工作中，可以直接将堆初始值与最大值设为相同值，以便减少程序运行时进行的垃圾回收次数，提高程序的性能。**
