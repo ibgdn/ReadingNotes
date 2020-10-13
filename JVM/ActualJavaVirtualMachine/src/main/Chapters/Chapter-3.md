@@ -842,6 +842,7 @@
   Java 进程启动时，虚拟机就会分配一块初始堆空间（可以通过参数`-Xms`指定初始堆空间大小）。虚拟机会尽量维持在初始堆空间的范围内运行，如果初始堆空间耗尽，虚拟机会对堆空间扩展，上限为最大堆空间（用参数`-Xmx`设置）。
 
   Heap 空间大小及关系：[HeapAlloc](../java/com/ibgdn/chapter_3/HeapAlloc.java)
+  
   VM options：
   ```
   -Xmx20m -Xms5m -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseSerialGC
@@ -883,3 +884,16 @@
   from 大小为`0x00000000fede0000 - 0x00000000fedb0000 = 0x0000000000030000 = 196608`字节，`20971520 - 196608 = 20774912 ≠ 20136160`。出现偏差是由于虚拟机内部没有直接使用新生代 from/to 的大小，进一步对它们做了对其操作。
 
   **在实际工作中，可以直接将堆初始值与最大值设为相同值，以便减少程序运行时进行的垃圾回收次数，提高程序的性能。**
+
+#### 3.2.2 新生代的配置
+  通过参数`-Xmn`设置新生代大小，一般设置成整个堆空间的1/4到1/3。`-XX:SurvivorRatio`设置新生代中 eden 空间和 from/to 空间的比例关系。
+
+  新生代配置：[NewSizeDemo](../java/com/ibgdn/chapter_3/NewSizeDemo.java)
+
+  VM options：
+  ```
+  -Xmx20m -Xms20m -Xmn1m -XX:SurvivorRatio=2 -XX:+PrintGCDetails
+  ```
+  输出结果：
+  ```
+  ```
