@@ -842,7 +842,7 @@
   Java 进程启动时，虚拟机就会分配一块初始堆空间（可以通过参数`-Xms`指定初始堆空间大小）。虚拟机会尽量维持在初始堆空间的范围内运行，如果初始堆空间耗尽，虚拟机会对堆空间扩展，上限为最大堆空间（用参数`-Xmx`设置）。
 
   Heap 空间大小及关系：[HeapAlloc](../java/com/ibgdn/chapter_3/HeapAlloc.java)
-  
+
   VM options：
   ```
   -Xmx20m -Xms5m -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseSerialGC
@@ -896,4 +896,21 @@
   ```
   输出结果：
   ```
+  [GC (Allocation Failure) [PSYoungGen: 509K->504K(1024K)] 509K->504K(19968K), 0.0010014 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 1016K->488K(1024K)] 1016K->576K(19968K), 0.0013428 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 1000K->504K(1024K)] 1088K->708K(19968K), 0.0008333 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  Heap
+   PSYoungGen      total 1024K, used 1004K [0x00000000ffe80000, 0x0000000100000000, 0x0000000100000000)
+    eden space 512K, 97% used [0x00000000ffe80000,0x00000000ffefcff0,0x00000000fff00000)
+    from space 512K, 98% used [0x00000000fff00000,0x00000000fff7e010,0x00000000fff80000)
+  Disconnected from the target VM, address: '127.0.0.1:2837', transport: 'socket'
+    to   space 512K, 0% used [0x00000000fff80000,0x00000000fff80000,0x0000000100000000)
+   ParOldGen       total 18944K, used 10444K [0x00000000fec00000, 0x00000000ffe80000, 0x00000000ffe80000)
+    object space 18944K, 55% used [0x00000000fec00000,0x00000000ff633210,0x00000000ffe80000)
+   Metaspace       used 3049K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  Java HotSpot(TM) 64-Bit Server VM warning: NewSize (1536k) is greater than the MaxNewSize (1024k). A new max generation size of 1536k will be used.
   ```
+  Eden 区无法容纳任何一次循环中分配的1MB数组，就会触发一次新生代 GC，对 Eden 区进行部分回收。偏小的新生代无法为1MB数组预留空间，所有数组都会分配到老年代（10444KB）。
+
+  没有看到 Eden 和 From/To 按照设置的比例划分。原因在于 Jdk 1.8 默认使用 UseParallelGC 垃圾回收器，该垃圾回收器默认启动了 AdaptiveSizePolicy（自适应大小策略），如果开启了参数：`-XX:+UseAdaptiveSizePolicy`，则每次 GC 后会重新计算 Eden、From 和 To 区的大小。计算依据是 GC 过程中统计的 GC 时间、吞吐量、内存占用量。
