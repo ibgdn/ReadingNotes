@@ -890,6 +890,7 @@
 
   新生代配置：[NewSizeDemo](../java/com/ibgdn/chapter_3/NewSizeDemo.java)
 
+- -Xmn1m -XX:SurvivorRatio=2
   VM options：
   ```
   -Xmx20m -Xms20m -Xmn1m -XX:SurvivorRatio=2 -XX:+PrintGCDetails
@@ -903,14 +904,87 @@
    PSYoungGen      total 1024K, used 1004K [0x00000000ffe80000, 0x0000000100000000, 0x0000000100000000)
     eden space 512K, 97% used [0x00000000ffe80000,0x00000000ffefcff0,0x00000000fff00000)
     from space 512K, 98% used [0x00000000fff00000,0x00000000fff7e010,0x00000000fff80000)
-  Disconnected from the target VM, address: '127.0.0.1:2837', transport: 'socket'
     to   space 512K, 0% used [0x00000000fff80000,0x00000000fff80000,0x0000000100000000)
    ParOldGen       total 18944K, used 10444K [0x00000000fec00000, 0x00000000ffe80000, 0x00000000ffe80000)
     object space 18944K, 55% used [0x00000000fec00000,0x00000000ff633210,0x00000000ffe80000)
    Metaspace       used 3049K, capacity 4556K, committed 4864K, reserved 1056768K
     class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
-  Java HotSpot(TM) 64-Bit Server VM warning: NewSize (1536k) is greater than the MaxNewSize (1024k). A new max generation size of 1536k will be used.
   ```
   Eden 区无法容纳任何一次循环中分配的1MB数组，就会触发一次新生代 GC，对 Eden 区进行部分回收。偏小的新生代无法为1MB数组预留空间，所有数组都会分配到老年代（10444KB）。
 
   没有看到 Eden 和 From/To 按照设置的比例划分。原因在于 Jdk 1.8 默认使用 UseParallelGC 垃圾回收器，该垃圾回收器默认启动了 AdaptiveSizePolicy（自适应大小策略），如果开启了参数：`-XX:+UseAdaptiveSizePolicy`，则每次 GC 后会重新计算 Eden、From 和 To 区的大小。计算依据是 GC 过程中统计的 GC 时间、吞吐量、内存占用量。
+
+- -Xmn7m -XX:SurvivorRatio=2
+  VM options：
+  ```
+  -Xmx20m -Xms20m -Xmn7m -XX:SurvivorRatio=2 -XX:+PrintGCDetails
+  ```
+  输出结果：
+  ```
+  [GC (Allocation Failure) [PSYoungGen: 3172K->1520K(5632K)] 3172K->1764K(18944K), 0.0014965 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 4671K->1504K(5632K)] 4916K->1780K(18944K), 0.0022548 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 4728K->1520K(5632K)] 5005K->1796K(18944K), 0.0009145 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  Heap
+   PSYoungGen      total 5632K, used 4706K [0x00000000ff900000, 0x0000000100000000, 0x0000000100000000)
+    eden space 4096K, 77% used [0x00000000ff900000,0x00000000ffc1c9e8,0x00000000ffd00000)
+    from space 1536K, 98% used [0x00000000ffd00000,0x00000000ffe7c020,0x00000000ffe80000)
+    to   space 1536K, 0% used [0x00000000ffe80000,0x00000000ffe80000,0x0000000100000000)
+   ParOldGen       total 13312K, used 276K [0x00000000fec00000, 0x00000000ff900000, 0x00000000ff900000)
+    object space 13312K, 2% used [0x00000000fec00000,0x00000000fec45330,0x00000000ff900000)
+   Metaspace       used 3049K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+
+  Eden 区有足够的空间，所有数组首先分配在 Eden 区；但是 Eden 区不足以放下全部10M空间，程序运行时出现了3次新生代 GC。
+
+  程序每申请一次内存空间，都会废弃上一次申请的内存空间（上次申请的内存空间失去了引用），在新生代 GC 时，有效回收了失效的内存。
+
+  最终结果：所有的内存分配都在新生代进行，通过 GC 保证了新生代有足够的空间，老年代没有为数组预留任何空间，只是在 GC 过程中，部分新生代对象晋升到了老年代。
+
+- -Xmn16m -XX:SurvivorRatio=8
+  VM options：
+  ```
+  -Xmx20m -Xms20m -Xmn16m -XX:SurvivorRatio=8 -XX:+PrintGCDetails
+  ```
+  输出结果：
+  ```
+  Heap
+   PSYoungGen      total 14848K, used 13000K [0x00000000ff000000, 0x0000000100000000, 0x0000000100000000)
+    eden space 13312K, 97% used [0x00000000ff000000,0x00000000ffcb2318,0x00000000ffd00000)
+    from space 1536K, 0% used [0x00000000ffe80000,0x00000000ffe80000,0x0000000100000000)
+    to   space 1536K, 0% used [0x00000000ffd00000,0x00000000ffd00000,0x00000000ffe80000)
+   ParOldGen       total 4096K, used 0K [0x00000000fec00000, 0x00000000ff000000, 0x00000000ff000000)
+    object space 4096K, 0% used [0x00000000fec00000,0x00000000fec00000,0x00000000ff000000)
+   Metaspace       used 3048K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+
+  新生代使用16MB内存空间，Eden 区占用了14848KB，完全满足10MB数组空间分配，所有空间分配行为都在 Eden 区进行，没有 GC 行为。From/To 区和老年代 ParOldGen 的使用率都是0。
+
+  内存空间的基本设置策略：尽可能将对象预留在新生代，减少老年代 GC 的次数（如果对象大部分分配在老年代，后续会有 GC）。
+
+- -XX:NewRatio
+  使用参数`-XX:NewRatio`可以设置新生代和老年代的比例。
+
+  VM options：
+  ```
+  -Xmx20m -Xms20m -XX:NewRatio=2 -XX:+PrintGCDetails
+  ```
+  输出结果：
+  ```
+  [GC (Allocation Failure) [PSYoungGen: 5210K->480K(6144K)] 5210K->1776K(19968K), 0.0016938 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 5822K->496K(6144K)] 7119K->2816K(19968K), 0.0012217 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  Heap
+   PSYoungGen      total 6144K, used 2703K [0x00000000ff980000, 0x0000000100000000, 0x0000000100000000)
+    eden space 5632K, 39% used [0x00000000ff980000,0x00000000ffba7c38,0x00000000fff00000)
+    from space 512K, 96% used [0x00000000fff80000,0x00000000ffffc010,0x0000000100000000)
+    to   space 512K, 0% used [0x00000000fff00000,0x00000000fff00000,0x00000000fff80000)
+   ParOldGen       total 13824K, used 2320K [0x00000000fec00000, 0x00000000ff980000, 0x00000000ff980000)
+    object space 13824K, 16% used [0x00000000fec00000,0x00000000fee44360,0x00000000ff980000)
+   Metaspace       used 3049K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+
+  堆空间设置为20MB，新生代和老年代的分配比为：1:2，新生代空间大小`20MB/3=6MB`左右，老年代13MB左右。
+
+  由于新生代 GC 时， From/To 区不足以容纳任何一个1MB数组，影响了新生代的正常回收，故在新生代回收时需要老年代空间，导致2个1MB数组进入老年代（在新生代 GC 时，尚有1MB数组幸存，理应进入 From/To 区，而 From/To 区只有512KB，不足以容纳）。
