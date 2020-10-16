@@ -988,3 +988,32 @@
   堆空间设置为20MB，新生代和老年代的分配比为：1:2，新生代空间大小`20MB/3=6MB`左右，老年代13MB左右。
 
   由于新生代 GC 时， From/To 区不足以容纳任何一个1MB数组，影响了新生代的正常回收，故在新生代回收时需要老年代空间，导致2个1MB数组进入老年代（在新生代 GC 时，尚有1MB数组幸存，理应进入 From/To 区，而 From/To 区只有512KB，不足以容纳）。
+
+#### 3.2.3 堆溢出处理
+  Java 程序运行过程中，如果堆空间不足，就会抛出堆内存溢出错误（Out Of Memory，简称 OOM）。
+
+  参数`-XX:+HeapDumpOnOutOfMemoryError`可在堆堆内存溢出时导出整个堆信息；参数`-XX:HeapDumpPath`指定导出堆内存记录内容的存放路径。
+
+  堆内存溢出信息记录：[DumpOOM](../java/com/ibgdn/chapter_3/DumpOOM.java)
+
+- 堆内存溢出时导出信息
+  VM options：
+  ```
+  -Xmx20m -Xms5m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=D:/oom.dump
+  ```
+
+  输出结果：
+  ```
+  java.lang.OutOfMemoryError: Java heap space
+  Dumping heap to D:/oom.dump ...
+  Heap dump file created [15091420 bytes in 0.060 secs]
+  Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+  	  at com.ibgdn.chapter_3.DumpOOM.main(DumpOOM.java:16)
+  ```
+- 堆内存溢出时执行脚本并导出信息
+  除了在发生 OOM 时可以导出堆信息，虚拟机还允许在发生错误时执行一个脚本文件，用于崩溃程序的自救、报警或通知，帮助开发人员获得更多的系统信息。
+
+  VM options：
+  ```
+  -Xmx20m -Xms5m "-XX:OnOutOfMemoryError=Path/to/jdk/script/file %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=D:/oom.dump
+  ```
