@@ -1017,3 +1017,54 @@
   ```
   -Xmx20m -Xms5m "-XX:OnOutOfMemoryError=Path/to/jdk/script/file %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=D:/oom.dump
   ```
+
+### 3.3 别让性能有缺口：了解非堆内存的参数配置
+
+#### 3.3.1 方法区配置
+  JDK 1.6 和 1.7 通过参数`-XX:PermSize`、`-XX:MaxPermSize`设置永久区的初始值和最大值。
+
+  JDK 1.8 可以通过`-XX:MaxMetaspaceSize`指定永久区的最大值。
+
+#### 3.3.2 栈配置
+  参数`-Xss`指定线程栈的大小。
+
+#### 3.3.3 直接内存配置
+  直接内存在 NIO 被广泛使用后，变得非常普遍。直接内存跳过了 Java 堆，直接访问原生堆空间。
+
+  参数`-XX:MaxDirectMemorySize`设置最大直接内存大小，如果不设置，默认为最大堆内存，即`-Xmx`。
+
+  直接内存使用量达到设置的最大值时，就会触发垃圾回收。如果垃圾回收不能有效释放内存空间，直接内存溢出会引起系统 OOM。
+
+- 直接内存和堆内存读写速度对比
+  直接内存和堆内存的读写对比：[AccessDirectBuffer](../java/com/ibgdn/chapter_3/AccessDirectBuffer.java)
+
+  输出结果：
+  ```
+  TestBufferWrite: 77
+  TestDirectWrite: 65
+  TestBufferWrite: 41  
+  TestDirectWrite: 44 
+  ```
+  添加`-server`（默认为`-client`）将会有很大的性能提升【没有发现明显差异】。
+
+  输出结果：
+  ```
+  TestBufferWrite: 120
+  TestDirectWrite: 82
+  TestBufferWrite: 43
+  TestDirectWrite: 82 
+  ```
+
+- 直接内存和堆内存申请速度对比
+
+  直接内存和堆内存申请速度对比：[AllocDirectBuffer](../java/com/ibgdn/chapter_3/AllocDirectBuffer.java)
+
+  输出结果：
+  ```
+  BufferAllocate: 92
+  DirectAllocate: 196
+  BufferAllocate: 128
+  DirectAllocate: 139
+  ```
+
+  **申请内存空间时，堆空间的速度远远高于直接内存。直接内存适合申请次数少、访问频繁的场景。**
