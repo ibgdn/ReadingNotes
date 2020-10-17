@@ -1068,3 +1068,23 @@
   ```
 
   **申请内存空间时，堆空间的速度远远高于直接内存。直接内存适合申请次数少、访问频繁的场景。**
+
+### 3.4 Client 和 Server 二选一：虚拟机的工作模式
+  Java 虚拟机支持 Client 和 Server 两种运行模式，分别使用参数`-client`、`-server`指定。
+
+  与 Client 模式相比，Server 模式的启动速度比较慢，Server 模式会尝试收集更多的系统性能信息，使用更复杂的优化算法对程序进行优化，当系统完全启动并进入运行稳定期后，Server 模式的执行速度远远快于 Client 模式。
+
+  添加参数`-XX:+PrintFlagsFinal`可以查看不同模式下的参数数值。
+
+  ```
+  $ java -XX:+PrintFlagsFinal -server -version | grep -E 'CompileThreshold|MaxHeapSize'
+       intx CompileThreshold                          = 10000                               {pd product}
+      uintx IncreaseFirstTierCompileThresholdAt       = 50                                  {product}
+      uintx MaxHeapSize                              := 4160749568                          {product}
+       intx Tier2CompileThreshold                     = 0                                   {product}
+       intx Tier3CompileThreshold                     = 2000                                {product}
+       intx Tier4CompileThreshold                     = 15000                               {product}
+  openjdk version "1.8.0_252"
+  OpenJDK Runtime Environment (build 1.8.0_252-b09)
+  OpenJDK 64-Bit Server VM (build 25.252-b09, mixed mode)
+  ```
