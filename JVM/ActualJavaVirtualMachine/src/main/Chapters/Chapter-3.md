@@ -1070,7 +1070,7 @@
   **申请内存空间时，堆空间的速度远远高于直接内存。直接内存适合申请次数少、访问频繁的场景。**
 
 ### 3.4 Client 和 Server 二选一：虚拟机的工作模式
-  Java 虚拟机支持 Client 和 Server 两种运行模式，分别使用参数`-client`、`-server`指定。
+  Java 虚拟机支持 Client 和 Server 两种工作模式，分别使用参数`-client`、`-server`指定。
 
   与 Client 模式相比，Server 模式的启动速度比较慢，Server 模式会尝试收集更多的系统性能信息，使用更复杂的优化算法对程序进行优化，当系统完全启动并进入运行稳定期后，Server 模式的执行速度远远快于 Client 模式。
 
