@@ -112,3 +112,43 @@
   - 强引用可以直接访问目标对象
   - 强引用所指向的对象在任何时候都不会被系统回收，虚拟机即便抛出 OOM 异常，也不会回收强引用所指向对象
   - 强引用对象可能导致内存泄漏
+
+#### 4.3.3 软引用——可被回收的引用
+  软引用是比强引用弱一点的引用类型。一个对象只持有软引用，当内存空间不足时，会被回收。软引用使用`java.lang.ref.SoftReference`类实现。
+
+  软引用：[SoftRef](../java/com/ibgdn/chapter_4/SoftRef.java)
+
+  VM options：
+  ```
+  -Xmx10m
+  ```
+
+  输出结果：
+  ```
+  User{id=1, name='user'}
+  After GC:
+  User{id=1, name='user'}
+  User{id=1, name='user'}
+  ```
+  最后一次输出的对象应该为`null`，实际输出了已有对象。创建对象并赋值是强引用，`new SoftReference()`是建立软引用对象，`user = null`去除强引用，在创建大数据对象后，会因为内存不足回收软引用对象（实际代码中没有出现）。
+
+  **GC 未必会回收软引用的对象，当内存资源紧张时，软引用对象会被回收，软引用对象不会引起内存溢出。**
+
+  每一个软引用都可以附带一个引用队列，当对象的可达性状态发生改变时（由可达变为不可达），软引用对象就会进入引用队列。通过这个引用队列，可以跟踪对象的回收情况。
+
+  软引用引用队列：[SoftRefQueue](../java/com/ibgdn/chapter_4/SoftRefQueue.java)
+
+  VM options：
+  ```
+  -Xmx10m
+  ```
+
+  输出结果：
+  ```
+  User{id=1, name='user_1'}
+  After GC:
+  User{id=1, name='user_1'}
+  Try to create byte array and GC.
+  User{id=1, name='user_1'}
+  ```
+  添加自定义软引用类，指定软引用队列后，当给定的对象被回收时，会被加入引用队列，通过该队列跟踪对象的回收情况。
