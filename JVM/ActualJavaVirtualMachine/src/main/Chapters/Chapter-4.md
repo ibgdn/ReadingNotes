@@ -191,3 +191,11 @@
 
 ### 4.4 垃圾回收时的停顿现象：Stop-The-World 案例实战
   垃圾回收器的任务是识别和回收垃圾对象进行内存清理。为了让垃圾回收器正常高效的工作，大部分情况下需要系统进入一个停顿的状态。停顿的目的是终止所有应用线程的执行（只有这样，系统才不会产生新的垃圾），同时停顿保证了系统状态在某一个瞬间的一致性，方便垃圾回收器标记垃圾对象。停顿产生时，整个应用程序都会被卡死，没有任何响应，因此这个停顿也叫“Stop-The-World”（STW）。
+
+  Stop-The-World：[StopTheWorld](../java/com/ibgdn/chapter_4/StopTheWorld.java)
+
+  VM options：
+  ```
+  -Xmx1g -Xms1g -Xmn512k -XX:+UseSerialGC -Xloggc:gc.log -XX:+PrintGCDetails
+  -Xmx1g -Xms1g -Xmn900m -XX:SurvivorRatio=1 -XX:+UseSerialGC -Xloggc:gc.log -XX:+PrintGCDetails
+  ```

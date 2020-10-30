@@ -134,7 +134,7 @@ public class TraceCanReliveObject {
         phantomQueue = new ReferenceQueue<TraceCanReliveObject>();
         object = new TraceCanReliveObject();
         // 构建对象虚引用，并指定引用队列
-        PhantomReference<TraceCanReliveObject> phantomRef = new PhantomReference<>(object, phantomQueue);
+        PhantomReference<TraceCanReliveObject> phantomRef = new PhantomReference<TraceCanReliveObject>(object, phantomQueue);
 
         // 去除对象强引用
         object = null;
