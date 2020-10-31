@@ -9,3 +9,6 @@
 
 ## 第4章 垃圾回收概念与算法
   [垃圾回收概念与算法](src/main/Chapters/Chapter-4.md)
+
+## 第5章 垃圾收集器和内存分配
+  [垃圾收集器和内存分配](src/main/Chapters/Chapter-5.md)
