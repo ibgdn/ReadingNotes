@@ -22,3 +22,13 @@
   - -XX:+UseSerialGC：新生代、老年代都是用串行回收器。
   - -XX:+UseParNewGC：新生代使用 ParNew 回收器，老年代使用串行回收器。
   - -XX:+UseParallelGC：新生代使用 ParallelGC 回收器，老年代使用串行回收器。
+
+### 5.2 人多力量大：并行回收器
+#### 5.2.1 新生代 ParNew 回收器
+  ParNew 回收器是一个工作在新生代的垃圾回收器。简单的将串行回收器多线程化，回收策略、算法以及参数和新生代串行回收器一样。属于**独占式回收器**，垃圾收集过程中，应用程序会全部暂停。在多核 CPU 的机器上，产生的停顿时间短于串行回收器，单核 CPU 的机器由于多线程的压力，实际表现能力比串行回收器还差。
+
+  开启 ParNew 回收器使用如下参数：
+  - -XX:+UseParNewGC：新生代使用 ParNew 回收器，老年代使用串行回收器。
+  - -XX:+UseConcMarkSweepGC：新生代使用 ParNew 回收器，老年代使用 CMS。
+
+  ParNew 回收器工作时的线程数量可以使用`-XX:ParallelGCThreads`参数指定，一般设置成 CPU 核数，避免线程数量影响垃圾回收性能。**默认情况下，当 CPU 核数小于8时，ParallelGCThreads 的值等于 CPU 核数，当 CPU 核数大于8时，ParallelGCThreads 的值等于`3 + ((5 * CPU_count) / 8)`。**
