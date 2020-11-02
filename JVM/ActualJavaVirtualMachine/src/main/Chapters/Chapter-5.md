@@ -32,3 +32,17 @@
   - -XX:+UseConcMarkSweepGC：新生代使用 ParNew 回收器，老年代使用 CMS。
 
   ParNew 回收器工作时的线程数量可以使用`-XX:ParallelGCThreads`参数指定，一般设置成 CPU 核数，避免线程数量影响垃圾回收性能。**默认情况下，当 CPU 核数小于8时，ParallelGCThreads 的值等于 CPU 核数，当 CPU 核数大于8时，ParallelGCThreads 的值等于`3 + ((5 * CPU_count) / 8)`。**
+
+#### 5.2.2 新生代 ParallelGC 回收器
+  **新生代 ParallelGC 回收器也是使用复制算法的回收器。**除 ParNew 回收器一样，属于多线程、独占式的回收器之外，还有一个重要特点：关注系统吞吐量。
+
+  新生代 ParallelGC 回收器可以使用如下参数启用：
+  - -XX:+UseParallelGC：新生代使用 ParallelGC 回收器，老年代使用串行回收器。
+  - -XX:+UseParallelOldGC：新生代使用 ParallelGC 回收器，老年代使用 ParallelOldGC 回收器。
+
+  ParallelGC 回收器提供两个重要参数用于控制系统吞吐量（两个参数互相矛盾）：
+  - -XX:MaxGCPauseMillis：设置最大垃圾回收停顿时间。大于0的整数。
+    ParallelGC 工作时，会调整 Java 堆或其他参数的大小，尽可能将停顿时间控制在 MaxGCPauseMillis 以内。如果希望减少停顿时间，将值设置的很小，虚拟机会使用一个较小的堆空间，导致垃圾回收变得很频繁，从而增加垃圾回收总时间，降低吞吐量。
+  - -XX:GCTimeRatio：设置吞吐量大小。0~100之间的整数。假设 GCTimeRatio 的值为 n，系统花费不超过`1/(1+n)`的时间用于垃圾回收。默认情况下取值是99，即不超过`1/(1+99) = 1%`的时间用于垃圾回收。
+
+  ParallelGC 回收器于 ParNew 回收器的另一个不同之处在于支持一种自适应 GC 调节策略。使用`-XX:+UseAdaptiveSizePolicy`可以打开自适应 GC 策略。在这种模式下，新生代内存大小，Eden 区和 Survivor 区的比例，达到换代级别的年龄会被自动调整，以达到堆空间大小、吞吐量、停顿时间的平衡。
