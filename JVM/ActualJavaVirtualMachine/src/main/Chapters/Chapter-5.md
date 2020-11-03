@@ -46,3 +46,10 @@
   - -XX:GCTimeRatio：设置吞吐量大小。0~100之间的整数。假设 GCTimeRatio 的值为 n，系统花费不超过`1/(1+n)`的时间用于垃圾回收。默认情况下取值是99，即不超过`1/(1+99) = 1%`的时间用于垃圾回收。
 
   ParallelGC 回收器于 ParNew 回收器的另一个不同之处在于支持一种自适应 GC 调节策略。使用`-XX:+UseAdaptiveSizePolicy`可以打开自适应 GC 策略。在这种模式下，新生代内存大小，Eden 区和 Survivor 区的比例，达到换代级别的年龄会被自动调整，以达到堆空间大小、吞吐量、停顿时间的平衡。
+
+#### 5.2.3 老年代 ParallelOldGC 回收器
+  老年代 ParallelOldGC 回收器也是一种多线程并发，同时关注吞吐量的回收器。是一个应用于老年代，并且和 ParallelGC 新生代回收器搭配使用的回收器。
+
+  **ParallelOldGC 回收器使用比较压缩算法，在 JDK1.6 才使用。**
+
+  使用参数`-XX:+UseParallelOldGC`在新生代使用 ParallelGC 回收器，在老年代使用 ParallelOldGC 回收器，是一对非常关注吞吐量的垃圾回收组合，对吞吐量敏感的系统可以考虑使用。参数`-XX:ParallelGCThreads`用于设置垃圾回收时的线程数量。
