@@ -85,6 +85,34 @@
 
   CMS 垃圾回收器是一个基于标记清除算法的回收器，会造成大量内存碎片，离散的可用空间无法分配较大的对象。即便堆内存仍然有较大的剩余空间，也可能会被迫进行一次垃圾回收，以换取一块可用的连续内存空间。`-XX:UseCMSCompactAtFullCollection`开关使 CMS 在垃圾收集完成后，进行一次内存碎片整理（不是并发进行）。`-XX:CMSFullGCsBeforeCompaction`参数可以用于设定进行多少次 CMS 回收后，进行一次内存压缩。
 
+#### 5.3.3 CMS 日志分析
+  CMS 回收器工作时的日志输出如下：
+  ```
+  1.313: [GC [1 CMS-initial-mark: 69112K(136576K)] 77037K(198016K), 0.0120453 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]
+  1.325: [CMS-concurrent-mark-start]
+  ...
+  1.406: [CMS-concurrent-mark: 0.072/0.082 secs] [Times: user=0.17 sys=0.00, real=0.08 secs]
+  1.406: [CMS-concurrent-preclean-start]
+  ...
+  1.409: [CMS-concurrent-abortable-preclean-start]
+  ...
+  1.423: [GC[YG occupancy: 35483 K (61440K)]1.423: [Rescan (parallel) , 0.0102064 secs] 1.433: [weak refs processing, 0.0000142 secs]1.433: [scrub string table, 0.0000298 secs] [1 CMS-remark: 74166K(136576K)] 109650K(198016K), 0.0103386 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]
+  1.433: [CMS-concurrent-sweep-start]
+  ```
+  以上是一次 CMS 内存垃圾回收的部分输出信息，包括了初始化标记、并发标记、预清理、重新标记、并发清理和并发重置等几个重要阶段。
+
+  1.409秒时，发生 abortable-preclean，表示 CMS 开始等待一次新生代 GC。之后 ParNew 垃圾回收器工作，abortable-preclean 终止（ParNew 工作信息未展示）。CMS 根据之前新生代 GC 的情况，将重新标记的时间放置在一个最不可能和下一次新生代 GC 重叠的时刻，通常为两次新生代 GC 的中间点。
+
+  CMS 回收器在运行时还可能输出如下信息：
+  ```
+  33.348: [Full GC 33.348: [CMS33.347: [CMS-concurrent-sweep: 0.034/0.036 secs] [Times: user=0.11 sys=0.03, real=0.03 secs]
+  (concurrent mode failure): 47066K->39901K(49152K), 0.3896802 secs] 60771K->39901K(63936K), [CMS Perm : 22529K->22529K(32768K)], 0.3897989 secs] [Times: user=0.39 sys=0.00, real=0.39 secs]
+  ```
+
+  `(concurrent mode failure)`显示 CMS 垃圾回收器并发收集失败。很可能是由于应用程序在运行过程中老年代空间不够所致。如果在 CMS 工作过程中，出现非常频繁的并发模式失败，就应该考虑进行调整，尽可能预留一个较大的老年代空间。或者设置一个较小的`-XX:CMSInitiatingOccupancyFraction`参数，降低 CMS 触发的阈值，使 CMS 在执行过程中，仍然有较大的老年代空闲空间供应用程序使用。
+
+  **注意：CMS 回收器是一个关注停顿的垃圾回收器。同时 CMS 回收器在部分工作流程中，可以与用户程序同时运行，从而降低应用程序的停顿时间。**
+
 ### 5.4 未来我做主：G1 回收器
   G1 回收器（Garbage-First）在 JDK 1.7中正式使用的全新垃圾回收器，为了取代 CMS 回收器。G1 属于分代垃圾回收器，会区分年轻代和老年代，依然有 Eden 区和 Survivor 区，从堆的结构看，并不要求整个 Eden 区、年轻代或者老年代都连续。
 
@@ -103,3 +131,15 @@
   - 并发标记周期
   - 混合收集
   - 如果需要，可能会进行 Full GC
+
+#### 5.4.2 G1 的新生代 GC
+  新生代 GC 的主要工作是回收 Eden 区和 Survivor 区。一旦 Eden 区被占满，新生代 GC 就会启动。新生代 GC 只处理 Eden 区和 Survivor 区，内存垃圾回收后，所有的 Eden 区都应该被清空，而 Survivor 区被收集一部分数据，至少仍然存在一个 Survivor 区（与其他新生代收集器没有太大变化）。重要变化是老年代的数据区域增多，因为部分 Survivor 区或者 Eden 区的对象可能会晋升到老年代。
+
+  新生代 GC 发生后，如果打开了 PrintGCDetails 选项，就可以得到类似日志输出信息：
+  ```
+  0.336: [GC pause (young), 0.0063051 secs]
+  ...
+  [Eden: 235.0M(235.0M)->0.0B(229.0M) Survivors: 5120.0K->11.0M Heap:239.2M(400.0M)->10.5M(400.0M)]
+  [Times: user=0.06 sys=0.00, real=0.01 secs]
+  ```
+  和其他内存垃圾回收器的日志相比，G1 的日志内容非常丰富。我们最为关心的是 GC 的停顿时间以及回收情况。从日志中可以看到，Eden 区原本占用235MB空间，回收后被清空，Survivor 区从5MB增长到了11MB，这是因为部分对象从 Eden 区复制到 Survivor 区，整个堆合计为400MB，从回收前的239MB下降到10.5MB。
