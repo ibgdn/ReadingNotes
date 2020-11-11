@@ -173,3 +173,16 @@
   graph TD
   A[年轻代 GC] --> B[并发标记周期] --> C[混合 GC] --> A
   ```
+
+#### 5.4.5 必要时的 Full GC
+  并发垃圾回收器（CMS、G1都是）是应用程序和 GC 线程交替工作，在内存空间不足的时候会进行 Full GC。
+
+  Full GC 日志：
+  ```
+  24.909: [GC concurrent-mark-start]
+  24.909: [Full GC 898M->896M(900M), 0.7505595 secs]
+      [Eden: 0.0B(45.0M)->0.0B(45.0M) Survivors: 0.0B->0.0B Heap: 898.7M(900.0M)->896.2M(900.0M)]
+    [Times: user=1.05 sys=0.00, real=0.75 secs]
+  25.660: [GC concurrent-mark-abort]
+  ```
+  如果在混合 GC 时发生空间不足或者在新生代 GC 时，Survivor 区和老年代无法容纳幸存对象，都会导致一次 Full GC 发生。
