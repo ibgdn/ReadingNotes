@@ -186,3 +186,73 @@
   25.660: [GC concurrent-mark-abort]
   ```
   如果在混合 GC 时发生空间不足或者在新生代 GC 时，Survivor 区和老年代无法容纳幸存对象，都会导致一次 Full GC 发生。
+
+#### 5.4.6 G1 日志
+  完整 G1 新生代日志：
+  ```
+  1.619: [GC pause (young) (initial-mark), 0.03848843 secs]
+    [Parallel Time: 38.0ms]
+      [GC Worker Start (ms): 1619.3 1619.3 1619.3 1619.3
+       Avg: 1619.3, Min:    1619.3, Max:    1619.3, Diff:   0.0]
+      [Ext Root Scanning (ms): 0.3 0.3 0.2 0.2
+       Avg: 0.3, Min:   0.2, Max: 0.3, Diff:  0.1]
+      [Update RS (ms): 5.7 5.4 28.0 5.3
+       Avg: 11.1, Min:  5.3, Max:   28.0, Diff: 22.8]
+         [Processed Buffers : 5 4 1 4
+          Sum: 14, Avg: 3, Min: 1, Max: 5, Diff: 4]
+      [Scan RS (ms): 4.6 5.0 0.0 5.2
+       Avg: 3.7, Min:   0.0, Max: 5.2, Diff:  5.2]
+      [Object Copy (ms): 27.4 27.3 9.6 27.2
+       Avg: 22.9, Min:  9.6, Max:   27.4, Diff: 17.7]
+      [Termination (ms): 0.1 0.0 0.0 0.1
+       Avg: 0.0, Min:   0.0, Max: 0.1, Diff:  0.1]
+         [Termination Attempts : 3 1 10 5
+          Sum: 19, Avg: 4, Min: 1, Max: 10, Diff: 9]
+      [GC Worker End (ms): 1657.3 1657.2 1657.2 1657.2
+       Avg: 1657.2, Min:    1657.2, Max:    1657.3, Diff:   0.0]
+      [GC Worker (ms): 38.0 38.0 38.0 38.0
+       Avg: 38.0, Min:  38.0, Max:   38.0, Diff:   0.1]
+      [GC Worker Other (ms): 0.0 0.1 0.1 0.1
+       Avg: 0.1, Min:   0.0, Max:   0.1, Diff:  0.1]
+    [Clear CT:  0.0 ms]
+    [Other: 0.4 ms]
+       [Choose CSet:    0.0 ms]
+       [Ref Proc:   0.1 ms]
+       [Ref Enq:    0.1 ms]
+       [Free CSet:  0.1 ms]
+    [Eden: 32M(35M)->0B(35M) Survivors: 5120K->5120K Heap: 147M(200M)->147M(200M)]
+  [Times: user=0.16 sys=0.00, real=0.04 secs]
+  ```
+
+  - 新生代 GC
+      ```
+      1.619: [GC pause (young) (initial-mark), 0.03848843 secs]
+      ```
+      应用程序开启 1.619 秒时发生了一次新生代 GC，初始标记时发生的，耗时0.038秒，应用程序至少暂停了0.038秒。
+  - 后续并行时间
+      ```
+        [Parallel Time: 38.0ms]
+      ```
+      所有 GC 线程总的花费时间，38毫秒。
+  - 每一个线程的执行情况
+      ```
+          [GC Worker Start (ms): 1619.3 1619.3 1619.3 1619.3
+           Avg: 1619.3, Min:    1619.3, Max:    1619.3, Diff:   0.0]
+      ```
+      一共4个 GC 线程（第一行有4个数据），都在1619.3秒时启动。给出几个启动数据的统计值，平均（Avg）、最小（Min）、最大（Max）和差值（Diff，最大值和最小值的差值）。
+  - 根扫描耗时
+      ```
+          [Ext Root Scanning (ms): 0.3 0.3 0.2 0.2
+           Avg: 0.3, Min:   0.2, Max: 0.3, Diff:  0.1]
+      ```
+      根扫描时（全局变量、系统数据字典、线程栈等），每一个 GC 线程的耗时。第一行给出分配消耗时间，第二行给出耗时的统计数据。
+  - 更新记忆集（Remembered Sets）耗时
+      ```
+          [Update RS (ms): 5.7 5.4 28.0 5.3
+           Avg: 11.1, Min:  5.3, Max:   28.0, Diff: 22.8]
+             [Processed Buffers : 5 4 1 4
+              Sum: 14, Avg: 3, Min: 1, Max: 5, Diff: 4]
+      ```
+      记忆集是 G1 中的一个数据结构，简称 RS。每个 G1 区域都有一个 RS 与之关联。G1 进行垃圾回收时按照区域回收，扫描多个区域来判定对象是否可达，代价较高。G1 在 A 区域的 RS 中，记录了在 A 区域中被其他区域引用的对象，在回收 A 区域的对象时，只需要将 RS 视为 A 区域根集的一部分，从而避免做整个堆空间的扫描。
+
+      由于系统在运行过程中，对象之间的引用关系时刻变化，为了更高效追踪这些引用关系，将这些变化记录在 Update Buffers 中。Processed Buffers 指的就是处理这个 Update Buffers 数据。4个时间和就是4个 GC 线程的耗时，以及统计数据。更新 RS 时，分别耗时5.7、5.4、28、5.3毫秒，平均耗时11.1毫秒。
