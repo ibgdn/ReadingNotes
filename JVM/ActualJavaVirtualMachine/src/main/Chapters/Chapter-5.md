@@ -311,3 +311,10 @@
       [Times: user=0.16 sys=0.00, real=0.04 secs]
     ```
     Eden 区一共32MB被清空，Survivor 区没有释放对象，整个堆空间没有释放空间。用户 CPU 耗时0.16秒，实际耗时0.04秒。
+
+#### 5.4.7 G1 相关的参数
+  参数`-XX:+UseG1GC`标记打开 G1 垃圾回收器开关；参数`-XX:MaxGCPauseMillis`指定目标最大停顿时间，超过这个设定值，G1 就会尝试调整新生代和老年代的比例、堆空间大小、换代年龄等，来达到预设数值。  对于性能调优来说，如果停顿时间缩短，可能就要增加新生代 GC 的次数，变得更加频繁；老年代区域为了获得更短的停顿时间，在混合 GC 收集时，一次收集的区域数量也会变少，无疑增加了进行 Full GC 的可能性。
+
+  参数`-XX:ParallelGCThreads`用于设置并行回收时，GC 的工作线程数量。
+
+  参数`-XX:InitiatingHeapOccupancyPercent`可以指定当整个堆使用率达到设定值时，触发并发标记周期的执行。默认是45，即当整个堆空间使用率达到45%时，执行并发标记周期。InitiatingHeapOccupancyPercent 一旦设置，始终不会被 G1 垃圾回收器修改，这意味着 G1 垃圾回收器不会为满足 MaxGCPauseMillis 来修改这个值。如果 InitiatingHeapOccupancyPercent 值偏大，会导致并发周期迟迟得不到启动，引起 Full GC 的可能性大大增加；如果值偏小，会使得并发周期非常频繁，大量 GC 线程抢占 CPU，应用程序性能下降。
