@@ -318,3 +318,22 @@
   参数`-XX:ParallelGCThreads`用于设置并行回收时，GC 的工作线程数量。
 
   参数`-XX:InitiatingHeapOccupancyPercent`可以指定当整个堆使用率达到设定值时，触发并发标记周期的执行。默认是45，即当整个堆空间使用率达到45%时，执行并发标记周期。InitiatingHeapOccupancyPercent 一旦设置，始终不会被 G1 垃圾回收器修改，这意味着 G1 垃圾回收器不会为满足 MaxGCPauseMillis 来修改这个值。如果 InitiatingHeapOccupancyPercent 值偏大，会导致并发周期迟迟得不到启动，引起 Full GC 的可能性大大增加；如果值偏小，会使得并发周期非常频繁，大量 GC 线程抢占 CPU，应用程序性能下降。
+
+### 5.5 回眸：有关对象内存分配和回收的一些细节问题
+#### 5.5.1 禁用 System.gc()
+  默认情况下，`System.gc()`会显式直接触发 Full GC，同时对新生代和老年代内存垃圾进行回收。一般情况下，内存垃圾回收应该是自动进行，无需手动触发。参数`DisableExplicitGC`控制是否手动触发 GC。
+
+  手动触发方式：
+  ```java
+  Runtime.getRuntime().gc();
+  ```
+  `Runtime.gc()`是一个 Native 方法，最终实现在 jvm.cpp 中
+  ```
+  JVM_ENTRY_NO_ENV(void, JVM_GC(void))
+    JVMWrapper("JVM_GC");
+    if (!DisableExplicitGC) {
+      Universe::heap()->collect(GCCause::_java_lang_system_gc);
+    }
+  JVM_END
+  ```
+  设置了`-XX:-+DisableExplicitGC`，条件判断无法成立，禁用显式 GC，`System.gc()`等价于一个空函数调用。
