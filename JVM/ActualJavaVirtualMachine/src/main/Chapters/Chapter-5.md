@@ -337,3 +337,49 @@
   JVM_END
   ```
   设置了`-XX:-+DisableExplicitGC`，条件判断无法成立，禁用显式 GC，`System.gc()`等价于一个空函数调用。
+  
+#### 5.5.2 System.gc() 使用并发回收
+  默认情况，`System.gc()`生效，会使用传统的 Full GC 方式回收整个堆空间，忽略了参数中的 UseG1GC 和 UseConcMarkSweepGC。
+  
+  `-XX:+PrintGCDetails -XX:+UseConcMarkSweepGC` 或者 `-XX:+PrintGCDetails -XX:+UseG1GC`遇到`System.gc()`时，就会输出日志：
+  CMS：
+  ```
+  [Full GC[CMS: 454K->453K(10944K), 0.0046875 secs] 544K->453K(15936K), [CMS Perm : 1593K->1593K(12288K)],  0.0047210 secs] [Times: user=0.02   sys=0.00,   real=0.01 secs]
+  ```
+
+  G1：
+  ```
+  [Full GC 616K->453K(5120K), 0.0049140 secs]
+      [Eden: 1024.0K(7168.0K)->0.0B(2048.0K) Survivors: 0.0B->0.0B Heap: 616.5K(16.0M)->453.4K(5120.0K)]
+    [Times: user= 0.01  sys=0.00,   real=0.00 secs]
+  ```
+  CMS 和 G1 都没有并发执行垃圾回收，因为在日志中没有任何并发相关信息。通过参数`-XX:+ExplicitGCInvokesConcurrent`可以改变默认设置：
+  
+  `-XX:+PrintGCDetails -XX:UseConcMarkSweepGC -XX:+ExplicitGCInvokesConcurrent`或者`-XX:+PrintGCDetails -XX:+UseG1GC -XX:+ExplicitGCInvokesConcurrent`
+  
+  CMS：
+  ```
+  [GC[ParNew: 620K->462K(4928K), 0.0012471 secs] 620K->462K(15872K), 0.0012948 secs] [Times: user=0.00  sys=0.00, real=0.00 secs]
+  [GC [1 CMS-initial-mark: 0K(10944K)] 462K(15872K), 0.0004039 secs] [Times: user=0.00  sys=0.00,   real=0.00 secs]
+  [CMS-concurrent-mark: 0.006/0.006 secs] [Times: user=0.01 syst=0.00, real=0.01 secs]
+  [CMS-concurrent-preclean: 0.000/0.000 secs] [Times: user=0.00 sys=0.00,   real=0.00 secs]
+  [GC[YG occupancy: 550 K (4928 K)][Rescan (parallel) , 0.0002013 secs] [weak refs processing, 0.0000060 secs] [scrub string table, 0.0000209 secs] [1 CMS-remark: 0k(10944K)] 550K(15872K), 0.0002639 secs] [Times: user=0.00  sys=0.00,   real=0.00 secs]
+  [CMS-concurrent-sweep: 0.000/0.000 secs] [Times: user=0.00    sys=0.00,   real=0.00 secs]
+  ```
+
+  G1（部分省略）：
+  ```
+  [GC pause (young) (initial-mark), 0.0013322 secs]
+      [Parallel Time: 1.1 ms, GC Workers: 2]
+      [Eden: 1024.0K(7168.0K)->0.0B(5120.0K) Survivors: 0.0B->1024.0K Heap:616.5K(16.0M)->476.1K(16.0M)]
+    [Times: user=0.00   sys=0.00,   real=0.00 secs]
+  [GC concurrent-root-region-scan-start]
+  [GC concurrent-root-region-scan-end, 0.0003496 secs]
+  [GC concurrent-mark-start]
+  [GC concurrent-mark-end, 0.0000331 secs]
+  [GC remark [GC ref-proc, 0.0000142 secs], 0.0003168 secs]
+    [Times: user=0.00   sys=0.00,   real=0.00 secs]
+  [GC cleanup 517K->517K(16M), 0.0000742 secs]
+    [Times: user=0.00   sys=0.00,   real=0.00 secs]
+  ```
+  只有设置`ExplicitGCInvokesConcurrent`参数后，`System.gc()`显示 GC 才会使用并发方式进行回收。否则，不管使用哪种内存垃圾回收器，都不会进行并发回收。
