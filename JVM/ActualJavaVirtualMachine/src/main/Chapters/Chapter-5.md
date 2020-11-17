@@ -383,3 +383,23 @@
     [Times: user=0.00   sys=0.00,   real=0.00 secs]
   ```
   只有设置`ExplicitGCInvokesConcurrent`参数后，`System.gc()`显示 GC 才会使用并发方式进行回收。否则，不管使用哪种内存垃圾回收器，都不会进行并发回收。
+
+#### 5.5.3 并行 GC 前额外触发的新生代 GC
+  并行垃圾回收器的 Full GC（使用 UseParallelOldGC 或者 UseParallelGC），在每次 Full GC 之前都会伴随一次新生代 GC。
+  
+  ```java
+  System.gc();
+  ```
+  代码只是进行一次简单的 Full GC，使用串行垃圾回收器`-XX:+PrintGCDetails -XX:+UseSerialGC`系统 GC 日志输出如下：
+  ```
+  [Full GC[Tenured: 0K->376K(10944K), 0.003328 secs] 603K->376K(15872K), [Perm: 142K->142K(12288K)], 0.033825 secs] [Times: user=0.00   sys=0.00,   real=0.00 secs]
+  ```
+
+  切换并行垃圾回收器`-XX:+PrintGCDetails -XX:+UseParallelOldGC`GC 日志输出如下：
+  ```
+  [GC [PSYoungGen: 670K->480K(5120K)] 670K->480K(15872K), 0.0153729 secs] [Times: user=0.02 sys=0.00,   real=0.02 secs]
+  [Full GC [PSYoungGen: 480K->0K(5120K)] [ParOldGen: 0K->453K(10752K)] 480K->453K(15872K) [PSPermGen: 1592K->1591K(12288K)], 0.0073608 secs] [Times: user=0.00  sys=0.00,   real=0.01 secs]
+  ````
+  使用并行垃圾回收器时，触发 Full GC 之前，进行一次新生代 GC。`System.gc()`实际触发了两次 GC。先将新生代对象进行一次垃圾回收，避免将所有垃圾回收工作同时交给 Full GC 进行，尽可能的缩短停顿时间。
+  
+  如果不需要这个特性，使用参数`-XX:-ScavengeBeforeFullGC`（默认为 true）去除发生在 Full GC 之前的那次新生代 GC。
