@@ -403,3 +403,32 @@
   使用并行垃圾回收器时，触发 Full GC 之前，进行一次新生代 GC。`System.gc()`实际触发了两次 GC。先将新生代对象进行一次垃圾回收，避免将所有垃圾回收工作同时交给 Full GC 进行，尽可能的缩短停顿时间。
   
   如果不需要这个特性，使用参数`-XX:-ScavengeBeforeFullGC`（默认为 true）去除发生在 Full GC 之前的那次新生代 GC。
+
+#### 5.5.4 对象何时进入老年代
+  对象被创建出来后，一般首先会放置在新生代的 Eden（伊甸园）区。 圣经记载，亚当和夏娃住在伊甸园，也就是人类开始居住的地方。如果没有 GC 介入，对象将不会离开 Eden 区。
+
+1. 初创的对象在 Eden 区
+  
+  垃圾回收器的任务是识别和回收垃圾对象进行内存清理。为了让垃圾回收器正常高效的工作，大部分情况下需要系统进入一个停顿的状态。停顿的目的是终止所有应用线程的执行（只有这样，系统才不会产生新的垃圾），同时停顿保证了系统状态在某一个瞬间的一致性，方便垃圾回收器标记垃圾对象。停顿产生时，整个应用程序都会被卡死，没有任何响应，因此这个停顿也叫“Stop-The-World”（STW）。
+
+  AllocEden：[AllocEden](../java/com/ibgdn/chapter_5/AllocEden.java)
+
+  VM options：
+  ```
+  -Xmx64M -Xms64M -XX:+PrintGCDetails
+  ```
+
+  输出内容：
+  ```
+  Heap
+   PSYoungGen      total 18944K, used 7884K [0x00000000feb00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 16384K, 48% used [0x00000000feb00000,0x00000000ff2b3110,0x00000000ffb00000)
+    from space 2560K, 0% used [0x00000000ffd80000,0x00000000ffd80000,0x0000000100000000)
+    to   space 2560K, 0% used [0x00000000ffb00000,0x00000000ffb00000,0x00000000ffd80000)
+   ParOldGen       total 44032K, used 0K [0x00000000fc000000, 0x00000000feb00000, 0x00000000feb00000)
+    object space 44032K, 0% used [0x00000000fc000000,0x00000000fc000000,0x00000000feb00000)
+   Metaspace       used 3048K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+  `eden space 16384K, 48% used [0x00000000feb00000,0x00000000ff2b3110,0x00000000ffb00000)`
+  没有发生 GC，创建的对象全部放在堆中， Eden 区占据了8M左右的空间，From、To 区和 ParOldGen（老年代）均没有使用。
