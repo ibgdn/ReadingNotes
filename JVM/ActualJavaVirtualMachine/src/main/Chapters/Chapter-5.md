@@ -432,3 +432,122 @@
   ```
   `eden space 16384K, 48% used [0x00000000feb00000,0x00000000ff2b3110,0x00000000ffb00000)`
   没有发生 GC，创建的对象全部放在堆中， Eden 区占据了8M左右的空间，From、To 区和 ParOldGen（老年代）均没有使用。
+
+2. 老年对象进入老年代
+  对象的年龄达到一定数值，就会由年轻代进入老年代，被称为“晋升”。对象的年龄由对象经历过的 GC 次数决定，经历一次 GC，同时没有被回收，年龄就会加1，`MaxTenuringThreshold`控制新生代对象最大年龄（默认为15），经历过15次 GC 的新生代对象就会进入老年代。
+
+  MaxTenuringThreshold：[MaxTenuringThreshold](../java/com/ibgdn/chapter_5/MaxTenuringThreshold.java)
+  创建数组，并放入集合，防止被 GC 回收，同时不断地进行内存分配，触发新生代 GC。
+  
+  VM options：
+  ```
+  -Xmx1024M -Xms1024M -XX:+PrintGCDetails -XX:MaxTenuringThreshold=15 -XX:+PrintHeapAtGC
+  ```
+
+  输出内容：
+  ```
+  {Heap before GC invocations=1 (full 0):
+   PSYoungGen      total 305664K, used 261493K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 262144K, 99% used [0x00000000eab00000,0x00000000faa5d5b8,0x00000000fab00000)
+    from space 43520K, 0% used [0x00000000fd580000,0x00000000fd580000,0x0000000100000000)
+    to   space 43520K, 0% used [0x00000000fab00000,0x00000000fab00000,0x00000000fd580000)
+   ParOldGen       total 699392K, used 0K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0000000,0x00000000eab00000)
+   Metaspace       used 3051K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 321K, capacity 392K, committed 512K, reserved 1048576K
+  [GC (Allocation Failure) [PSYoungGen: 261493K->6271K(305664K)] 261493K->6271K(1005056K), 0.0069430 secs] [Times: user=0.00 sys=0.00, real=0.02 secs] 
+  Heap after GC invocations=1 (full 0):
+   PSYoungGen      total 305664K, used 6271K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 262144K, 0% used [0x00000000eab00000,0x00000000eab00000,0x00000000fab00000)
+    from space 43520K, 14% used [0x00000000fab00000,0x00000000fb11fcc0,0x00000000fd580000)
+    to   space 43520K, 0% used [0x00000000fd580000,0x00000000fd580000,0x0000000100000000)
+   ParOldGen       total 699392K, used 0K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0000000,0x00000000eab00000)
+   Metaspace       used 3051K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 321K, capacity 392K, committed 512K, reserved 1048576K
+  }
+  {Heap before GC invocations=2 (full 0):
+   PSYoungGen      total 305664K, used 268415K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 262144K, 100% used [0x00000000eab00000,0x00000000fab00000,0x00000000fab00000)
+    from space 43520K, 14% used [0x00000000fab00000,0x00000000fb11fcc0,0x00000000fd580000)
+    to   space 43520K, 0% used [0x00000000fd580000,0x00000000fd580000,0x0000000100000000)
+   ParOldGen       total 699392K, used 0K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0000000,0x00000000eab00000)
+   Metaspace       used 3051K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 321K, capacity 392K, committed 512K, reserved 1048576K
+  [GC (Allocation Failure) [PSYoungGen: 268415K->6232K(305664K)] 268415K->6240K(1005056K), 0.0031253 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  Heap after GC invocations=2 (full 0):
+   PSYoungGen      total 305664K, used 6232K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 262144K, 0% used [0x00000000eab00000,0x00000000eab00000,0x00000000fab00000)
+    from space 43520K, 14% used [0x00000000fd580000,0x00000000fdb96040,0x0000000100000000)
+    to   space 43520K, 0% used [0x00000000fab00000,0x00000000fab00000,0x00000000fd580000)
+   ParOldGen       total 699392K, used 8K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0002000,0x00000000eab00000)
+   Metaspace       used 3051K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 321K, capacity 392K, committed 512K, reserved 1048576K
+  }
+  ... ...
+  {Heap before GC invocations=15 (full 0):
+   PSYoungGen      total 339968K, used 330190K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 330752K, 99% used [0x00000000eab00000,0x00000000fed73bd0,0x00000000fee00000)
+    from space 9216K, 0% used [0x00000000ff700000,0x00000000ff700000,0x0000000100000000)
+    to   space 9216K, 0% used [0x00000000fee00000,0x00000000fee00000,0x00000000ff700000)
+   ParOldGen       total 699392K, used 6536K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0662070,0x00000000eab00000)
+   Metaspace       used 3052K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 321K, capacity 392K, committed 512K, reserved 1048576K
+  [GC (Allocation Failure) [PSYoungGen: 330190K->0K(339968K)] 336727K->6536K(1039360K), 0.0003203 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  Heap after GC invocations=15 (full 0):
+   PSYoungGen      total 339968K, used 0K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 330752K, 0% used [0x00000000eab00000,0x00000000eab00000,0x00000000fee00000)
+    from space 9216K, 0% used [0x00000000fee00000,0x00000000fee00000,0x00000000ff700000)
+    to   space 9216K, 0% used [0x00000000ff700000,0x00000000ff700000,0x0000000100000000)
+   ParOldGen       total 699392K, used 6536K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0662070,0x00000000eab00000)
+   Metaspace       used 3052K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 321K, capacity 392K, committed 512K, reserved 1048576K
+  }
+  Heap
+   PSYoungGen      total 339968K, used 189349K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 330752K, 57% used [0x00000000eab00000,0x00000000f63e95d0,0x00000000fee00000)
+    from space 9216K, 0% used [0x00000000fee00000,0x00000000fee00000,0x00000000ff700000)
+    to   space 9216K, 0% used [0x00000000ff700000,0x00000000ff700000,0x0000000100000000)
+   ParOldGen       total 699392K, used 6536K [0x00000000c0000000, 0x00000000eab00000, 0x00000000eab00000)
+    object space 699392K, 0% used [0x00000000c0000000,0x00000000c0662070,0x00000000eab00000)
+   Metaspace       used 3058K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+  分配1G内存，将对象尽可能预留在新生代（堆空间大，新生代就大）。显示展示`MaxTenuringThreshold`，打开`PrintHeapAtGC`，GC 时打印堆详细信息。
+  
+  第一次 GC 开始前， Eden 区使用了99%（触发 GC 的原因）。Eden 区不能容纳更多对象，又有新的对象产生，就需要对 Eden 区进行清理，将存活的对象移入 From 区，From 区占用了14%，`43520K * 14% = 6092.8K`，接近6MB，放在 map 对象中的 byte 数组匹配，第一次 GC 的另一个影响是 Eden 区被清空。每一次 GC 都会使存活对象年龄加1，15次之后，新生代被清空。
+  ```
+   PSYoungGen      total 339968K, used 0K [0x00000000eab00000, 0x0000000100000000, 0x0000000100000000)
+    eden space 330752K, 0% used [0x00000000eab00000,0x00000000eab00000,0x00000000fee00000)
+    from space 9216K, 0% used [0x00000000fee00000,0x00000000fee00000,0x00000000ff700000)
+    to   space 9216K, 0% used [0x00000000ff700000,0x00000000ff700000,0x0000000100000000)
+  ```
+  新生代被移除的对象，晋升到老年代（map 对象中的 bytes 数组），老年代有`6536KB`被使用，新生代使用为`0KB`，说明新生代对象进入了老年代。
+  
+  计算晋升年龄的逻辑代码如下：
+  ```
+  size_t desired_survivor_size = (size_t)((((double) survivor_capacity) * TargetSurvivorRatio) / 100);
+  size_t total = 0;
+  int age = 1;
+  assert(sizes[0] == 0, "no objects with age zero should be recorded");
+  while (age < table_size) {
+    total += sizes[age];
+    // check if including objects of age 'age' made us pass the desired size, if so 'age' is the new threshold
+    if (total > desired_survivor_size) break;
+    age++;
+  }
+  int result = age < MaxTenuringThreshold ? age : MaxTenuringThreshold;
+  ```
+  `desired_survivor_size `定义了期望的`survivor`区的使用大小，`while`循环计算对象晋升年龄，`sizes`数组保存每一个年龄段的对象大小之和。在`age`和`MaxTenuringThreshold`中取较小者作为对象的实际晋升年龄，确定对象晋升的另外一个重要参数是`TargetSurvivorRation`，用于设置 Survivor 区的目标使用率，默认为50，如果 Survivor 区在 GC 后超过50%的使用率，很有可能会使用较小的`age`作为晋升年龄。
+  
+  VM options：
+  ```
+  -Xmx1024M -Xms1024M -XX:+PrintGCDetails -XX:MaxTenuringThreshold=15 -XX:+PrintHeapAtGC -XX:TargetSurvivorRatio=13
+  ```
+  如果更改`TargetSurvivorRatio`的值为13，小于14%，会帮助`map`对象更快的进入老年代。
+  
+  **注意：对象的实际晋升年龄是根据 Survivor 区的使用情况动态计算得来的，`MaxTenuringThreshold` 只是表示对象年龄的最大值。**
