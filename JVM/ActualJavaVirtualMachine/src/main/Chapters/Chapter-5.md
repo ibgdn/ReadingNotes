@@ -551,3 +551,77 @@
   如果更改`TargetSurvivorRatio`的值为13，小于14%，会帮助`map`对象更快的进入老年代。
   
   **注意：对象的实际晋升年龄是根据 Survivor 区的使用情况动态计算得来的，`MaxTenuringThreshold` 只是表示对象年龄的最大值。**
+  
+3. 大对象进入老年代
+  除了对象的年龄外，体积也影响对象的晋升。新生代 Eden 区或者 Survivor 区都无法容纳的对象，会直接晋升到老年代。
+
+  参数`PretenureSizeThreshold`设置对象直接晋升到老年代的阈值，单位字节。只对串行回收器和 ParNew 有效，对 ParallelGC 无效。默认值为0，没有固定值，由运行决定。
+
+  PretenureSizeThreshold：[PretenureSizeThreshold](../java/com/ibgdn/chapter_5/PretenureSizeThreshold.java)
+
+  VM options：
+  ```
+  -Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails
+  ```
+
+  输出内容：
+  ```
+  Heap
+   def new generation   total 9792K, used 7974K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)
+    eden space 8704K,  91% used [0x00000000fe000000, 0x00000000fe7c9838, 0x00000000fe880000)
+    from space 1088K,   0% used [0x00000000fe880000, 0x00000000fe880000, 0x00000000fe990000)
+    to   space 1088K,   0% used [0x00000000fe990000, 0x00000000fe990000, 0x00000000feaa0000)
+   tenured generation   total 21888K, used 0K [0x00000000feaa0000, 0x0000000100000000, 0x0000000100000000)
+     the space 21888K,   0% used [0x00000000feaa0000, 0x00000000feaa0000, 0x00000000feaa0200, 0x0000000100000000)
+   Metaspace       used 3057K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+  `def new generation   total 9792K, used 7974K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)`
+  所有的对象均分配在新生代，老年代使用率为0。
+  
+  VM options：
+  ```
+  -Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:PretenureSizeThreshold=1000
+  ```
+
+  输出内容：
+  ```
+  Heap
+   def new generation   total 9792K, used 7869K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)
+    eden space 8704K,  90% used [0x00000000fe000000, 0x00000000fe7af5e8, 0x00000000fe880000)
+    from space 1088K,   0% used [0x00000000fe880000, 0x00000000fe880000, 0x00000000fe990000)
+    to   space 1088K,   0% used [0x00000000fe990000, 0x00000000fe990000, 0x00000000feaa0000)
+   tenured generation   total 21888K, used 104K [0x00000000feaa0000, 0x0000000100000000, 0x0000000100000000)
+     the space 21888K,   0% used [0x00000000feaa0000, 0x00000000feaba150, 0x00000000feaba200, 0x0000000100000000)
+   Metaspace       used 3058K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+  `
+   def new generation   total 9792K, used 7869K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)
+   tenured generation   total 21888K, used 104K [0x00000000feaa0000, 0x0000000100000000, 0x0000000100000000)
+  `
+  之前期望至少5MB数据分配到老年代，作为分配主体的数据看起来依然在新生代，似乎 PretenureSizeThreshold 不起作用，只是老年代略有不同，只有104KB被使用。
+
+  其实出现这种情况是虚拟机在为线程分配空间时，优先使用 TLAB 的区域，对于体积不大的对象，会在 TLAB 区域先行分配，因此失去了在老年代分配的机会。禁用 TLAB 即可。
+
+  VM options：
+  ```
+  -Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:-UseTLAB -XX:PretenureSizeThreshold=1000
+  ```
+
+  输出内容：
+  ```
+  Heap
+   def new generation   total 9792K, used 1299K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)
+    eden space 8704K,  14% used [0x00000000fe000000, 0x00000000fe144d40, 0x00000000fe880000)
+    from space 1088K,   0% used [0x00000000fe880000, 0x00000000fe880000, 0x00000000fe990000)
+    to   space 1088K,   0% used [0x00000000fe990000, 0x00000000fe990000, 0x00000000feaa0000)
+   tenured generation   total 21888K, used 6194K [0x00000000feaa0000, 0x0000000100000000, 0x0000000100000000)
+     the space 21888K,  28% used [0x00000000feaa0000, 0x00000000ff0aca00, 0x00000000ff0aca00, 0x0000000100000000)
+   Metaspace       used 3057K, capacity 4556K, committed 4864K, reserved 1056768K
+    class space    used 322K, capacity 392K, committed 512K, reserved 1048576K
+  ```
+  `
+   tenured generation   total 21888K, used 6194K [0x00000000feaa0000, 0x0000000100000000, 0x0000000100000000)
+  `
+  禁用 TLAB 后，大于1000字节的 byte 数组分配到了老年代。
