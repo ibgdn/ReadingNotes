@@ -625,3 +625,68 @@
    tenured generation   total 21888K, used 6194K [0x00000000feaa0000, 0x0000000100000000, 0x0000000100000000)
   `
   禁用 TLAB 后，大于1000字节的 byte 数组分配到了老年代。
+
+#### 5.5.5 在 TLAB 上分配对象
+  TLAB 的全称时 Thread Local Allocation Buffer，线程本地分配缓存，是一个线程专用的内存分配区域。
+
+  为了加速对象分配，出现了这个区域。对象一般会分配到堆上，全局共享，同一时间可能会有多个线程在堆上申请空间。每一次对象分配都需要进行同步，在竞争激烈的场合分配的效率会进一步下降，Java 虚拟机使用 TLAB 线程专属的区域来避免线程冲突，提高对象分配的效率。TLAB 本身占用的是 Eden 区的空间。
+
+  UseTLAB：[UseTLAB](../java/com/ibgdn/chapter_5/UseTLAB.java)
+
+  VM options：
+  ```
+  -XX:+UseTLAB -Xcomp -XX:-BackgroundCompilation -XX:-DoEscapeAnalysis -server
+  ```
+
+  输出内容：
+  ```
+  Pass time: 98
+  ```
+  显式打开 TLAB；启用对所有函数的 JIT 以及禁止后台编译（为了控制环境变量）；禁用逃逸分析，防止栈上分配的行为影响测试效果；Server 模式下才支持逃逸分析参数 DoEscapeAnalysis。
+
+  禁用 TLAB。
+  VM options：
+  ```
+  -XX:-UseTLAB -Xcomp -XX:-BackgroundCompilation -XX:-DoEscapeAnalysis -server
+  ```
+
+  输出内容：
+  ```
+  Pass time: 241
+  ```
+
+  TLAB 是否启用，对对象分配的影响很大。 TLAB 占用的空间不大，很容易装满，大对象无法在其上边分配，而直接分配在堆空间。如果100KB的 TLAB 空间，已经使用了80KB，需要再分配30KB时，虚拟机有两个选择：1.废弃当前 TLAB，浪费20KB；2.30KB空间直接分配在堆空间，保留当前 TLAB，剩余空间装低于20KB的对象。当发生请求分配内存空间的对象大于 TLAB 可用空间，虚拟机会维护一个叫做 refill_waste 的值，对象占用空间大于该值时，在堆空间分配；小于该值，则废弃 TLAB，新建 TLAB 来分配对象。可以通过 TLABRefillWasteFraction 来调整，默认为64，使用约为1/64的 TLAB 空间作为 refill_waste。
+
+  TLAB 和 refill_waste 都会在运行时不断调整，使系统的运行状态达到最优。禁用自动调整 TLAB 使用参数`-XX:-ResizeTLAB`,同时使用参数`-XX:TLABSize`指定 TLAB 大小。跟踪 TLAB 使用情况，需要添加参数`-XX:+PrintTLAB`。
+
+  VM options：
+  ```
+  -XX:+UseTLAB -XX:+PrintTLAB -XX:+PrintGC -XX:TLABSize=102400 -XX:-ResizeTLAB -XX:TLABRefillWasteFraction=100 -XX:-DoEscapeAnalysis -server
+  ```
+
+  输出内容：
+  ```
+  TLAB: gc thread: 0x0000000027d9a000 [id: 29564] desired_size: 100KB slow allocs: 0  refill waste: 1024B alloc: 0.03800     5000KB refills: 1 waste 100.0% gc: 102360B slow: 0B fast: 0B
+  TLAB: gc thread: 0x0000000027ccc800 [id: 28924] desired_size: 100KB slow allocs: 0  refill waste: 1024B alloc: 0.03800     5000KB refills: 1 waste 99.5% gc: 101912B slow: 0B fast: 0B
+  TLAB: gc thread: 0x0000000002c93800 [id: 7124] desired_size: 100KB slow allocs: 16  refill waste: 1024B alloc: 0.03800     5000KB refills: 1312 waste  0.0% gc: 0B slow: 23544B fast: 8B
+  TLAB totals: thrds: 3  refills: 1314 max: 1312 slow allocs: 16 max 16 waste:  0.2% gc: 204272B max: 102360B slow: 23544B max: 23544B fast: 8B max: 8B
+  [GC (Allocation Failure)  131584K->775K(502784K), 0.0013260 secs]
+  Pass time: 131
+  ```
+  输出内容分成两部分：首先是每一个线程的 TLAB 使用情况，其次是以 TLAB totals 为首的整体 TLAB 统计情况。desired_size 是 TLAB 的大小，通过参数`-XX:TLABSize=102400`指定100KB，slow allocs 表示上一次新生代 GC 到现在为止慢分配次数，慢分配是指由于 TLAB 空闲空间不能满足较大对象的分配，将对象直接分配在堆上。refill waste 表示 refill_waste 值。alloc 表示当前线程的 TLAB 分配比例（自上一次新生代 GC 后 number_of_refills * desired_size / used_tlab 的加权平均值）和使用评估量（加权平均值 * used_tlab（TLAB 上大约合计被分配了多少空间））。refills 表示该线程的 TLAB 空间被重新分配并填充的次数。
+
+  waste 表示空间的浪费比例。浪费的空间由三部分组成：gc、slow 和 fast。gc 表示当前新生代 GC 发生时，空闲的 TLAB 空间；slow 和 fast 都表示 TLAB 被废弃时，没有被使用的 TLAB 空间，两者的不同处是 fast 表示这个 refill 操作是通过 JIT 编译优化的（禁用 JIT，fast 永远为0）。wast 比例是由浪费空间之和（gc + slow + fast）与总分配大小（_number_of_refills * _desired_size）的比值。 
+
+  最后的 TLAB totals 则显示了所有线程的统计情况。thrds 相关线程数，refills 表示所有线程 refills 总数，之后的 max 表示 refills 次数最多的线程 refills 次数。
+
+  对象分配流程：如果运行栈上分配，系统会先进行栈上分配；没有开启或者不符合栈上分配条件会进行 TLAB分配；TLAB 分配不成功，尝试堆上分配；满足直接进入老年代的条件（PretenureSizeThreshold 等参数），在老年代分配内存空间，否则在 Eden 区分配内存空间。如果有必要，会进行一次新生代 GC。
+  ```mermaid
+  graph TD
+  A[尝试栈上分配] --成功--> B[栈上分配] 
+  C[尝试 TLAB 分配] --成功--> D[TLAB 分配] 
+  E[是否满足直接进入老年代的条件] --满足--> F[老年代分配] 
+  G[Eden 区分配]
+  A --失败--> C
+  C --失败--> E
+  E --不满足--> G
+  ```
