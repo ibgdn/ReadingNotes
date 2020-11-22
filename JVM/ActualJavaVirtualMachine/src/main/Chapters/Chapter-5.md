@@ -690,3 +690,13 @@
   C --失败--> E
   E --不满足--> G
   ```
+
+#### 5.5.6 方法 finalize() 对垃圾回收的影响
+  Java 中提供了一个类似于 C++ 中析构函数的机制——finalize()方法。
+  ```java
+  protected void finalize() throws Throwable {}
+  ```
+  可以在子类中重载该方法，用于对象被回收时进行资源释放。不过不推荐使用：
+  - finalize() 可能会导致对象复活
+  - finalize() 执行时机没有保障，完全由 GC 线程决定，极端情况下不发生 GC，finalize() 就不会执行
+  - 糟糕的 finalize() 会严重影响 GC 的性能
