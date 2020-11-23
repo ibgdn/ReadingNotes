@@ -700,3 +700,29 @@
   - finalize() 可能会导致对象复活
   - finalize() 执行时机没有保障，完全由 GC 线程决定，极端情况下不发生 GC，finalize() 就不会执行
   - 糟糕的 finalize() 会严重影响 GC 的性能
+
+  finalize() 方法是由 FinalizerThread 线程处理，每一个即将被回收达并且包含 finalize() 方法的对象都会在回收之前加入 FinalizerThread 的执行队列——java.lang.ref.ReferenceQueue 引用队列，内部通过链表实现，队列每一项为 java.lang.ref.Finalizer 引用对象，其本质是一个引用。Finalizer 内部封装了实际的回收对象， next、prev 为了实现链表，分别指向队列当前元素的下一个和上一个元素，reference 字段指向实际的对象引用。
+
+  对象在被回收之前，被 Finalizer 的 referent 字段进行“强引用”，并加入了 FinalizerThread 的执行队列，对象将变为可达，阻止对象的正常回收。在引用队列中的元素排队执行 finalizer() 方法，一旦出现性能问题，将导致垃圾对象长时间堆积在内存中，出现 OOM 异常。
+
+  
+  LongFinalize：[LongFinalize](../java/com/ibgdn/chapter_5/LongFinalize.java)
+
+  VM options：
+  ```
+  -Xmx10m -Xms10m -XX:+PrintGCDetails -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath="D:/oom-5.dump"
+  ```
+  sleep() 方法模拟一个耗时操作，主方法不断产生新的 LF 对象，每次循环中产生的 LF 对象（占用大约512字节）都会在下一个循环中失效，因为局部变量作用域过期，对象没有其他引用，所有产生的 LF 对象都应该可以被回收。理论上10M堆空间完全可以满足，可能需要多进行几次 GC，但是为什么会出现 OOM 呢？系统中由大量的 Finalizer 类，FinalizerThread 执行队列可能一直持有对象而来不及执行，因此大量的对象堆积无法被释放，最终导致 OOM。
+
+  去除重载的 finalizer() 方法，再次以相同的参数运行这段程序，将会很快正常结束，说明 finalizer() 对 GC 产生了影响。
+
+  **注意：一个糟糕的 finalizer() 方法可能会使对象长时间被 Finalizer 引用，得不到释放的对象会进一步增加 GC 的压力。finalizer() 方法应该尽量少的使用。**
+
+  某些场合，使用 finalizer() 方法会起到双保险的作用，比如 MySQL 的 JDBC 驱动中，com.mysql.jdbc.ConnectionImpl 实现 finalizer() 方法：
+  ```java
+  protected void finalizer() throws Throwable {
+    cleanup(null);
+    super.finalizer();
+  }
+  ```
+  当一个 JDBC Connection 被回收时，需要关闭连接，即 cleanup() 方法。在回收之前，如果正常调用 Connection.close() 方法，连接就会被显示关闭，cleanup() 方法就不需要做什么。如果没有显示关闭，Connection 对象被回收，会隐式的进行连接的关闭，确保没有数据库连接的泄漏。官方积极鼓励开发过程中显示关闭数据库连接，finalizer() 只是一种正常方法出现意外的补偿措施，但是调用时间不确定，不能单独作为可靠的资源回收手段。
