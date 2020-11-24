@@ -726,3 +726,44 @@
   }
   ```
   当一个 JDBC Connection 被回收时，需要关闭连接，即 cleanup() 方法。在回收之前，如果正常调用 Connection.close() 方法，连接就会被显示关闭，cleanup() 方法就不需要做什么。如果没有显示关闭，Connection 对象被回收，会隐式的进行连接的关闭，确保没有数据库连接的泄漏。官方积极鼓励开发过程中显示关闭数据库连接，finalizer() 只是一种正常方法出现意外的补偿措施，但是调用时间不确定，不能单独作为可靠的资源回收手段。
+
+### 5.6 温故又知新：常用的 GC 参数
+  1. 与串行回收器相关的参数
+  - -XX:+UseSerialGC：在新生代和老年代使用串行垃圾回收器。
+  - -XX:SurvivorRatio：设置 Eden 区大小和 Survivor 区大小比例。
+  - -XX:PretenureSizeThreshold：设置大对象直接进入老年代的阈值。当对象的大小超过这个值时，直接在老年代分配内存空间。
+  - -XX:MaxTenuringThreshold：设置对象进入老年代的年龄最大值。每一次 Minor GC 后，对象年龄加1。任何大于这个年龄的对象，一定会进入老年代。
+
+  2. 与并行 GC 相关的参数
+  - -XX:+UseParNewGC：在新生代使用并行垃圾回收器。
+  - -XX:+UseParallelOldGC：老年代使用并行垃圾回收器。
+  - -XX:ParallelGCThreads：设置用于垃圾回收的线程数。通常情况下可以和 CPU 内核数量相等，但在 CPU 数量较多的情况下，设置相对较小的数值是合理的。
+  - -XX:MaxGCPauseMillis：设置最大垃圾收集停顿时间。大于0的整数。内存垃圾回收器在工作时，会自动调整 Java 堆大小和其他一些参数，尽可能把停顿时间控制在 MaxGCPauseMillis 以内。
+  - -XX:GCTimeRatio：设置吞吐量大小。0到100之间的整数。假设 GCTimeRatio 的值为 n，那么系统将花费不超过`1/(n+1)`的时间用于垃圾回收。
+  - -XX:+UseAdaptiveSizePolicy：打开自适应 GC 策略。在这种模式下，新生代的内存大小、Eden 区和 Survivor 区的比例、晋升老年代的对象年龄等参数都会被调整，以达到在堆大小、吞吐量和停顿时间之间的平衡。
+
+  3. 与 CMS 垃圾回收器相关的参数
+  - -XX:+UseConcMarkSweepGC：新生代使用并行回收器，老年代使用 CMS+串行垃圾回收器。
+  - -XX:ParallelCMSThreads：设定 CMS 的线程数量。
+  - -XX:CMSInitiatingOccupancyFraction：设置 CMS 垃圾回收器在老年代空间被使用多少后触发，默认为68%。
+  - -XX:+UseCMSCompactAtFullCollection：设置 CMS 垃圾回收器完成垃圾回收后，是否进行一次内存碎片整理。
+  - -XX:CMSFullGCsBeforeCompaction：设置进行多少次 CMS 垃圾回收后，进行一次内存压缩。
+  - -XX:+CMSClassUnloadingEnabled：运行对类元数据区进行回收。
+  - -XX:CMSInitiatingPermOccupancyFraction：当永久区占用率达到一定百分比时，启动 CMS 回收（前提是`-XX:+CMSClassUnloadingEnabled`激活）。
+  - -XX:UseCMSInitiatingOccupancyOnly：只在达到阈值的时候才进行 CMS 垃圾回收。
+  - -XX:+CMSIncrementalMode：使用增量模式，比较适合单 CPU。增量模式在JDK8中标记为废弃，并且在JDK9中彻底移除。
+
+  4. 与G1垃圾回收器相关的参数
+  - -XX:+UseG1GC：使用G1垃圾回收器。
+  - -XX:MaxGCPauseMillis：设置最大垃圾收集停顿时间。
+  - -XX:GCPauseIntervalMillis：设置停顿间隔时间。
+
+  5. TLAB 相关
+  - -XX:+UseTLA：开启 TLAB 分配。
+  - -XX:+PrintTLAB：打印 TLAB 相关分配信息。
+  - -XX:TLABSize：设置 TLAB 大小。
+  - -XX:+ResizeTLAB：自动调整 TLAB 大小。
+
+  6. 其他参数
+  - -XX:+DisableExplicitGC：禁用显式 GC。
+  - -XX:+ExplicitGCInvokesConcurrent：使用并发方式处理显式 GC。
