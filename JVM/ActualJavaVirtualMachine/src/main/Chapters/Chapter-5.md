@@ -767,3 +767,27 @@
   6. 其他参数
   - -XX:+DisableExplicitGC：禁用显式 GC。
   - -XX:+ExplicitGCInvokesConcurrent：使用并发方式处理显式 GC。
+
+### 5.7 动手才是真英雄：垃圾回收器对 Tomcat 性能影响的实验
+#### 5.7.1 配置实验环境
+  使用不同的虚拟机参数启动 Tomcat 服务器，通过压力测试，获得虚拟机的主要性能指标，体验不同参数对系统性能的影响。
+
+  - 环境
+    - Apache Tomcat 8.5.60
+    - 普通网站
+    - 测试网站吞吐量
+
+  - 工具
+    - Apache JMeter 5.3
+
+  - 实验原理
+    - 通过 JMeter 对 Tomcat 增加压力，不同的虚拟机参数应该会有不同的性能表现
+
+  - 目的
+    观察不同参数配置对吞吐量的影响
+
+  如果为了防止 JMeter 对 Tomcat 产生影响，测试时使用两台独立的计算机，通过局域网连接。
+  ```mermaid
+  graph LR
+  A[Tomcat] --局域网连接--> B[JMeter] 
+  ```
