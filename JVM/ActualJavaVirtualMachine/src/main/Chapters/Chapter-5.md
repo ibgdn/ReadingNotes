@@ -809,3 +809,13 @@
     选中线程组 =》 右键 =》 添加 =》 监听器 =》 聚合报告
 
   配置完成后就可以获得 Tomcat 的测试结果。
+
+#### 5.7.3 配置 Web 应用服务器 Tomcat
+  Tomcat 是一个标准的 Java 程序，因此在其启动时，可以通过修改启动脚本文件，来配置 Java 虚拟机参数。
+
+  需要特别关注的是 JAVA_OPTS 和 CATALINA_OPTS 两个环境变量。
+  - CATALINA_OPTS
+    用于控制 Tomcat 本身的虚拟机参数，比如堆大小、GC 日志等，该配置不会被 Tomcat 的其他进程（shutdown.bat等）使用。**大部分情况下仅使用此环境变量。**
+
+  - JAVA_OPTS
+    使用范围更广，除了 Tomcat 之外，其他相关进程也会使用 JAVA_OPTS 的配置。
