@@ -12,3 +12,6 @@
 
 ## 第5章 垃圾收集器和内存分配
   [垃圾收集器和内存分配](src/main/Chapters/Chapter-5.md)
+  
+## 第6章 性能监控工具
+  [性能监控工具](src/main/Chapters/Chapter-6.md)
