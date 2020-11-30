@@ -47,3 +47,28 @@
 
 #### 6.1.2 监控内存和 CPU——vmstat 命令
   vmstat 是一款功能比较齐全的性能监测工具，可以统计 CPU、内存、swap 使用情况。可以和 sar 工具一样指定采样周期和采样次数。
+
+  ```
+  procs -----------memory---------- ---swap-- -----io---- --system-- -----cpu-----
+   r b   swpd  free    buff   cache   si  so   bi  bo  in  cs  us  sy id   wa  st
+   0 0   424   356568  0      159860  0   0    0   0   0   4   0   0  100  0   0
+   0 0   424   356564  0      159856  0   0    0   0   0   8   0   0  100  0   0
+   0 0   424   356564  0      159856  0   0    0   0   0   9   0   0  100  0   0
+  ```
+  vmstat 命令输出含义
+  类型|参数
+  :--:|:--
+  Procs|r：等待运行的进程数<br>b：处在非中断睡眠状态的进程数
+  Memory|swpd：虚拟内存使用情况，单位：KB<br>free：空闲的内存，单位：KB<br>buff：被用来作为缓存的内存数，单位：KB
+  Swap|si：从磁盘交换到内存的交换页数量，单位：KB/秒<br>so：从内存交换到磁盘的交换页数量，单位：KB/秒
+  IO|bi：发送到块设备的块数，单位：块/秒<br>bo：从块设备接收到的块数，单位：块/秒
+  System|in：每秒的中断数，包括时钟中断<br>cs：每秒的上下文切换次数
+  CPU|us：用户 CPU 使用时间<br>sy：内核 CPU 系统使用时间<br>id：空闲时间
+
+  HoldLockMain：[HoldLockMain](../java/com/ibgdn/chapter_6/HoldLockMain.java)
+
+  linux 环境下执行：
+  ```
+  [red@redhat8 ~]$ vmstat 1 4
+  ```
+  输出结果中，in（每秒中断数）、cs（上下文切换）值和 us（用户 CPU 时间）值，表明系统的上下文切换频繁，用户 CPU 占用率很高。
