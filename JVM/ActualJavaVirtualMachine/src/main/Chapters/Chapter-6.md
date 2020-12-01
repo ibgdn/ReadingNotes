@@ -72,3 +72,53 @@
   [red@redhat8 ~]$ vmstat 1 4
   ```
   输出结果中，in（每秒中断数）、cs（上下文切换）值和 us（用户 CPU 时间）值，表明系统的上下文切换频繁，用户 CPU 占用率很高。
+  
+#### 6.1.3 监控 IO 使用——iostat 命令
+  iostat 命令可以提供详细的 I/O 信息，属于 sysstat 软件包，可以直接安装。
+
+  linux 环境下执行（每1秒采样1次，合计采样2次）：
+  ```
+  [red@redhat8 ~]$ iostat 1 2
+  ```
+
+  只显示磁盘情况，不显示 CPU 使用情况，可以执行命令：
+  ```
+  [red@redhat8 ~]$ iostat -d 1 2
+  ```
+
+  如果需要更多统计信息，可以添加`-x`选项，执行命令：
+  ```
+  [red@redhat8 ~]$ iostat -x 1 2
+  ```
+
+  ```
+  [red@redhat8 ~]$ iostat
+  Linux 2.6.32-279.19.3.el6.ucloud.x86_64 (vm1)   06/11/2017  _x86_64_    (8 CPU)
+
+  avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           0.08    0.00    0.06    0.00    0.00   99.86
+
+  Device:            tps   Blk_read/s   Blk_wrtn/s   Blk_read   Blk_wrtn
+  vda               0.45         0.29         8.10    6634946  183036680
+  vdb               0.12         3.11        30.55   70342034  689955328
+  ```
+
+  参数|说明
+  :--:|:--
+  %user|CPU处在用户模式下的时间百分比。
+  %nice|CPU处在带NICE值的用户模式下的时间百分比。
+  %system|CPU处在系统模式下的时间百分比。
+  %iowait|CPU等待输入输出完成时间的百分比。
+  %steal|管理程序维护另一个虚拟处理器时，虚拟CPU的无意识等待时间百分比。
+  %idle|CPU空闲时间百分比。
+  tps|该设备每秒传输次数
+  Blk_read/s|每秒从设备读取的数据量
+  Blk_wrtn/s|每秒向设备写入的数据量
+  Blk_read|读取的总数据量
+  Blk_wrtn|写入的总数据量
+
+  **注意**
+  - 如果 %iowait 的值过高，表示硬盘存在 I/O 瓶颈。
+  - 如果 %idle 值高，表示 CPU 较空闲。
+  - 如果 %idle 值高但系统响应慢时，可能是 CPU 等待分配内存，应加大内存容量。
+  - 如果 %idle 值持续低于10，表明 CPU 处理能力相对较低，系统中最需要解决的资源是 CPU。
