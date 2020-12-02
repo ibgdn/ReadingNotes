@@ -122,3 +122,13 @@
   - 如果 %idle 值高，表示 CPU 较空闲。
   - 如果 %idle 值高但系统响应慢时，可能是 CPU 等待分配内存，应加大内存容量。
   - 如果 %idle 值持续低于10，表明 CPU 处理能力相对较低，系统中最需要解决的资源是 CPU。
+
+#### 6.1.4 多功能诊断器——pidstat 工具
+  pidstat 是一款功能强大的性能监测工具，也是 Sysstat 的组件之一。
+
+  下载源码后可执行如下命令完成编译、安装：
+  ```
+  [red@redhat8 ~]$ ./configure
+  [red@redhat8 ~]$ make
+  [red@redhat8 ~]$ make install
+  ```
