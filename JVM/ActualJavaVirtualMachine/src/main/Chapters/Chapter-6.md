@@ -132,3 +132,34 @@
   [red@redhat8 ~]$ make
   [red@redhat8 ~]$ make install
   ```
+
+  1. CPU 使用率监控
+
+  简单的占用 CPU 的程序，开启4个用户线程，1个占用大量 CPU 资源，其他3个处于空闲状态。
+  HoldCPUMain：[HoldCPUMain](../java/com/ibgdn/chapter_6/HoldCPUMain.java)
+
+  监视程序 CPU 的使用率，jps 查看 Java 程序的 PID，pidstat 查看 CPU 的使用情况
+  ```
+  [red@redhat8 ~]$ jps
+  [red@redhat8 ~]$ pidstat -p HoldCPUMain PID -u 1 3
+  ```
+
+  添加 -t 参数将系统性能的监控细化到线程级别。
+  ```
+  [red@redhat8 ~]$ pidstat -p HoldCPUMain PID -u 1 3 -t
+  01:47:30 PM   TGID    TID     %usr    %system     %guest  %CPU    CPU     Command
+  ...
+  01:47:31 PM   -       1204    97.03   0.00        0.00    97.03   1       |__java
+  ```
+
+  输出内容到文件
+  ```
+  [red@redhat8 ~]$ jstack -l PID > file.txt
+  ```
+
+  ```
+  "Thread-0" prio=10 tid=0xb75b3000 nid=0x4b4 runnable [0x8f171000]
+    java.lang.Thread.State: RUNNABLE
+     at javatuning.ch6.toolscheck.HoldCPUMain$HoldCPUTask.run(HoldCPUMain.java:7)
+  ```
+  线程正是 HoldCPUTask 类，它的 nid（native ID）为0x4b4，转为10进制数字后刚好是线程的 TID 值。
