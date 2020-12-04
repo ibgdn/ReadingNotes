@@ -163,3 +163,17 @@
      at javatuning.ch6.toolscheck.HoldCPUMain$HoldCPUTask.run(HoldCPUMain.java:7)
   ```
   线程正是 HoldCPUTask 类，它的 nid（native ID）为0x4b4，转为10进制数字后刚好是线程的 TID 值。
+
+  2. I/O 使用监控
+
+  磁盘 I/O 也是常见的性能瓶颈之一，pidstat 也可以监控进程内线程的 I/O 情况。
+  HoldIOMain：[HoldIOMain](../java/com/ibgdn/chapter_6/HoldIOMain.java)
+
+  通过 jps 命令查询进程 ID，-d 监控对象为磁盘 I/O，1 3 每秒钟采样1次，合计采样3次。
+  ```
+  [red@redhat8 ~]$ pidstat -p HoldIOMain PID -d -t 1 3
+  06:06:00 PM   TGID    TID     kB_rd/s kB_wr/s     kB_ccwr/s   Command
+  ...
+  06:06:01 PM   -       22813   0.00    328.00      0.00        |__java
+  ```
+  进程22813（0x591D）线程产生了大量 I/O 操作。
