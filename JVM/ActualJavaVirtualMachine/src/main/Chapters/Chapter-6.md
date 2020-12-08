@@ -201,3 +201,11 @@
 ### 6.2 用我更高效：Windows 下的性能监控工具
 #### 6.2.2 perfmon 性能监控工具
   Perfmon（性能监视器）是 Windows 的专业级性能监控工具。
+  
+  启动方式：运行 =》 perfmon 或者 控制面板 =》 性能监视器
+  
+  在性能监视器窗口点击右键 =》 添加计数器。重点关注 Thread 监控项下的内容：User Time（线程占用 CPU 的时间百分比）、ID Thread（线程 ID）、ID Process（进程 ID）。
+  
+  运行[HoldCPUMain](../java/com/ibgdn/chapter_6/HoldCPUMain.java)，设置监控对象为 Thread，并选择 java 进程中所有线程；选择右侧“更改图形类型”选择“报告”，会发现某一线程占用了很高的 CPU。通过任务管理找到 PID（36160），使用 JDK 自带的工具生成线程快照`jdkPath\bin>jstack.exe -l 36160 > dmp.txt`，将性能监视器中 Thread ID（33820）换算成16进制为841C，在生成的文件中[chapter-6_dmp.txt](./chapter-6_dmp.txt)查找`nid=0x841c`的线程，即可定位 Java 程序中消耗 CPU 最多的线程代码。
+  
+  运行中键入`perfmon /res` 命令，用于监控系统资源的使用情况。
