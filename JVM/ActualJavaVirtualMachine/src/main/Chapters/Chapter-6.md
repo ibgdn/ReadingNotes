@@ -209,3 +209,8 @@
   运行[HoldCPUMain](../java/com/ibgdn/chapter_6/HoldCPUMain.java)，设置监控对象为 Thread，并选择 java 进程中所有线程；选择右侧“更改图形类型”选择“报告”，会发现某一线程占用了很高的 CPU。通过任务管理找到 PID（36160），使用 JDK 自带的工具生成线程快照`jdkPath\bin>jstack.exe -l 36160 > dmp.txt`，将性能监视器中 Thread ID（33820）换算成16进制为841C，在生成的文件中[chapter-6_dmp.txt](./chapter-6_dmp.txt)查找`nid=0x841c`的线程，即可定位 Java 程序中消耗 CPU 最多的线程代码。
   
   运行中键入`perfmon /res` 命令，用于监控系统资源的使用情况。
+
+#### 6.2.3 Process Explorer 进程管理工具
+  Process Explorer 是一款功能强大的进程管理工具。下载地址：https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer
+
+  运行[HoldLockMain](../java/com/ibgdn/chapter_6/HoldLockMain.java)，java.exe 占有很高 CPU 使用率。选中进程，点击右键查看属性。点击 Threads 选项卡，可以看到当前进程中的线程信息。
