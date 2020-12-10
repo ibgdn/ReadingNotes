@@ -211,6 +211,113 @@
   运行中键入`perfmon /res` 命令，用于监控系统资源的使用情况。
 
 #### 6.2.3 Process Explorer 进程管理工具
-  Process Explorer 是一款功能强大的进程管理工具。下载地址：https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer
+  Process Explorer 是一款功能强大的进程管理工具。[下载地址](https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer)
 
   运行[HoldLockMain](../java/com/ibgdn/chapter_6/HoldLockMain.java)，java.exe 占有很高 CPU 使用率。选中进程，点击右键查看属性。点击 Threads 选项卡，可以看到当前进程中的线程信息。
+
+#### 6.2.4 pslist 命令——Windows 下也有命令行工具
+  pslist 是一款 Windows 下的命令行工具。[下载地址](https://docs.microsoft.com/en-us/sysinternals/downloads/pslist)
+
+  pslist 基本语法：
+  ```
+  pslist [-d] [-m] [-x] [-t] [-s[n]] [-r n] [name|pid]
+  ```
+  参数|说明
+  :--:|:--
+  -d|显示线程详细信息
+  -m|显示内存详细信息
+  -x|显示进程、内存和线程信息
+  -t|显示进程间父子关系
+  -s[n]|进入监控模式，n 指定程序运行时间，Esc 退出
+  -r n|指定监控模式下的刷新时间，单位：秒
+  name|指定监控的进程名称，pslist 将监控所有以给定名字开头的进程
+  pid|指定进程 ID
+  -e|使用精确匹配，打开这个开关，pslist 将只监控 name 参数指定的进程
+
+  运行[HoldCPUMain](../java/com/ibgdn/chapter_6/HoldCPUMain.java)，列出所有 Java 应用程序进程：
+  ```
+  PSTools>pslist java
+  
+  PsList v1.4 - Process information lister
+  Copyright (C) 2000-2016 Mark Russinovich
+  Sysinternals - www.sysinternals.com
+  
+  Process information for DESKTOP-35SMKNN:
+  
+  Name                Pid Pri Thd  Hnd   Priv        CPU Time    Elapsed Time
+  java              33008   8  29  444 809652     0:00:03.484     0:00:44.924
+  java              36052   8  28  333 851296     0:00:45.187     0:00:44.900
+  ```
+
+  列出线程信息：
+  ```
+  PSTools>pslist java -d
+  
+  PsList v1.4 - Process information lister
+  Copyright (C) 2000-2016 Mark Russinovich
+  Sysinternals - www.sysinternals.com
+  
+  Thread detail for DESKTOP-35SMKNN:
+  
+  
+  java 36052:
+   Tid Pri    Cswtch            State     User Time   Kernel Time   Elapsed Time
+  35436   9        67     Wait:UserReq  0:00:00.000   0:00:00.031    0:01:52.348
+  33500   9       180     Wait:UserReq  0:00:00.093   0:00:00.031    0:01:52.285
+  40496   9         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  26588   9         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  33388   9         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  24060   9         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  33012   9         5     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  29872   9         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  4280   9         5     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  24284   9         6     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.269
+  31576  10       117     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.254
+  36400  11         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.249
+  35064  10         4     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.247
+  6936  10         2     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.188
+  38196  12        11     Wait:UserReq  0:00:00.031   0:00:00.000    0:01:52.188
+  11620   9        57     Wait:UserReq  0:00:00.015   0:00:00.000    0:01:52.156
+  33564  10        98     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.156
+  38632  11        99     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.156
+  2116  10        97     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.156
+  25008  10        59     Wait:UserReq  0:00:00.046   0:00:00.000    0:01:52.156
+  39708   9         6     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.153
+  35304  10      2255     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.148
+  40892   8     33302          Running  0:01:52.828   0:00:00.046    0:01:52.106
+  32352   8       120     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.105
+  11720   8       119     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.105
+  31124   8       119     Wait:UserReq  0:00:00.000   0:00:00.000    0:01:52.105
+  
+  java 23532:
+   Tid Pri    Cswtch            State     User Time   Kernel Time   Elapsed Time
+  36456   9        12     Wait:UserReq  0:00:00.000   0:00:00.015    0:00:18.823
+  37752   8        14       Wait:Queue  0:00:00.000   0:00:00.000    0:00:18.769
+  40404   8        22       Wait:Queue  0:00:00.000   0:00:00.000    0:00:18.768
+  37352   9         5       Wait:Queue  0:00:00.000   0:00:00.000    0:00:18.768
+  12312   8       942     Wait:UserReq  0:00:01.015   0:00:00.312    0:00:18.758
+  16612   9        70     Wait:UserReq  0:00:00.015   0:00:00.015    0:00:18.746
+  39004   9        37     Wait:UserReq  0:00:00.031   0:00:00.000    0:00:18.746
+  39920   9       119     Wait:UserReq  0:00:00.031   0:00:00.000    0:00:18.746
+  31536   9        35     Wait:UserReq  0:00:00.015   0:00:00.000    0:00:18.746
+  22100   9       123     Wait:UserReq  0:00:00.015   0:00:00.000    0:00:18.746
+  31916   9       118     Wait:UserReq  0:00:00.015   0:00:00.000    0:00:18.746
+  21548   9        39     Wait:UserReq  0:00:00.031   0:00:00.000    0:00:18.746
+  33928   9       105     Wait:UserReq  0:00:00.031   0:00:00.000    0:00:18.745
+  36308  10        33     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.728
+  34160  11         5     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.724
+  36780  10         5     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.722
+  22568  10         2     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.680
+  40736  11         3     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.680
+  29900  10       765     Wait:UserReq  0:00:00.718   0:00:00.031    0:00:18.680
+  37004  10       785     Wait:UserReq  0:00:00.218   0:00:00.000    0:00:18.679
+  38040  10       748     Wait:UserReq  0:00:00.281   0:00:00.000    0:00:18.679
+  33544  10       474     Wait:UserReq  0:00:00.359   0:00:00.000    0:00:18.679
+  40604   8         2     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.678
+  36660  10       400     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:18.675
+  40524   9        15     Wait:UserReq  0:00:00.031   0:00:00.031    0:00:17.934
+  22652  11         3       Wait:Queue  0:00:00.000   0:00:00.000    0:00:17.910
+  24428   8        31     Wait:UserReq  0:00:00.000   0:00:00.000    0:00:17.616
+  38864   9        99     Wait:UserReq  0:00:00.031   0:00:00.000    0:00:17.608
+  ```
+  正在运行的具有较高 Cswtch 上下文切换值的线程 40892。换算成16进制数字查询 dmp 文件，可找到对应相应程序代码。
