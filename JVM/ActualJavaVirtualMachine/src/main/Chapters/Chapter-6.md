@@ -321,3 +321,6 @@
   38864   9        99     Wait:UserReq  0:00:00.031   0:00:00.000    0:00:17.608
   ```
   正在运行的具有较高 Cswtch 上下文切换值的线程 40892。换算成16进制数字查询 dmp 文件，可找到对应相应程序代码。
+
+### 6.3 外科手术刀：JDK 性能监控工具
+  java.exe、javac.exe 从扩展名来看都是可执行文件，其实只是 Java 程序的一层包装，真正实现实在 tools.jar 中。以 jps 工具为例，在控制台执行`jps`命令和`java -classpath %JAVA_HOME%/lib/tools.jar/sun.tools.jps.Jps`命令是等价的。
