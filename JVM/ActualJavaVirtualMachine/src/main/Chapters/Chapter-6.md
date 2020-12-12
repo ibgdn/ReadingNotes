@@ -324,3 +324,34 @@
 
 ### 6.3 外科手术刀：JDK 性能监控工具
   java.exe、javac.exe 从扩展名来看都是可执行文件，其实只是 Java 程序的一层包装，真正实现实在 tools.jar 中。以 jps 工具为例，在控制台执行`jps`命令和`java -classpath %JAVA_HOME%/lib/tools.jar/sun.tools.jps.Jps`命令是等价的。
+
+#### 6.3.1 查看 Java 进程——jps 命令
+  jps 类似 Linux 系统下达的 ps 命令，只是列出 Java 程序进程 ID 以及 Main 方法短名称（第一行输出的是 Jps 即 jps 命令本身）：
+  ```java
+  > jps
+  6260 Jps
+  7988 Main
+  400
+  ```
+  添加`-q`参数只输出进程 ID：`jps -q`
+
+  添加`-m`参数可以用于输出传递给 Java 进程（主方法）：
+  ```
+  > jps -m
+  7988 Main --log-config-file D:\tools\squirrel-sql-3.2.1\log4j.properties --squirrel-home D:\tools\squirrel-sql-3.2.1
+  7456 Jps -m
+  ```
+
+  添加`-l`参数可以用于输出主方法的完整路径：
+  ```
+  > jps -m -l
+  7244 sun.tools.jps.Jps -m -l
+  7988 net.sourceforge.squirrel_sql.client.Main --log-config-file D:\tools\squirrel-sql-3.2.1\log4j.properties --squirrel-home D:\tools\squirrel-sql-3.2.1
+  ````
+
+  添加`-v`参数可以显示传递给 Java 虚拟机的参数：
+  ```
+  > jps -m -l -v
+  6992 sun.tools.jps.Jps -m -l -v -Denv.class.path=.;D:\tools\jdk6.0\lib\dt.jar;D:\tools\jdk6.0\lib\tools.jar;D:\tools\jdk6.0\lib -Dapplication.home=D:\tools\jdk6.0 -Xms8m
+  7988 net.sourceforge.squirrel_sql.client.Main --log-config-file D:\tools\squirrel-sql-3.2.1\log4j.properties --squirrel-home D:\tools\squirrel-sql-3.2.1 -Xmx256m -Dsun.java2d.noddraw=true
+  ````
