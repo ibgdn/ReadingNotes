@@ -327,7 +327,7 @@
 
 #### 6.3.1 查看 Java 进程——jps 命令
   jps 类似 Linux 系统下达的 ps 命令，只是列出 Java 程序进程 ID 以及 Main 方法短名称（第一行输出的是 Jps 即 jps 命令本身）：
-  ```java
+  ```
   > jps
   6260 Jps
   7988 Main
@@ -355,3 +355,14 @@
   6992 sun.tools.jps.Jps -m -l -v -Denv.class.path=.;D:\tools\jdk6.0\lib\dt.jar;D:\tools\jdk6.0\lib\tools.jar;D:\tools\jdk6.0\lib -Dapplication.home=D:\tools\jdk6.0 -Xms8m
   7988 net.sourceforge.squirrel_sql.client.Main --log-config-file D:\tools\squirrel-sql-3.2.1\log4j.properties --squirrel-home D:\tools\squirrel-sql-3.2.1 -Xmx256m -Dsun.java2d.noddraw=true
   ````
+
+#### 6.3.2 查看虚拟机运行时信息——jstat 命令
+  jstat 是一个可以用于观察 Java 应用程序运行时相关信息的工具。基本语法：`jstat -<option> [-t] [-h<lines>] <vmid> [<interval> [<count>]]`
+
+  参数|说明
+  :--:|:--
+  option 选项|-class:显示 ClassLoader 的相关信息。<br>-compiler：显示 JIT 编译的相关信息。<br>-gc：显示与 GC 相关的堆信息。<br>-gccapacity：显示各个代的容量及使用情况。<br>-gccause：显示垃圾收集相关信息（同-gcutil），同时显示最后一次或当前正在发生的垃圾回收的诱发原因。<br>-gcnew：显示新生代信息。<br>-gcnewcapacity：显示新生代大小与使用情况。<br>-gcold：显示老年代和永久代的信息。<br>-gcoldcapacity：显示老年代的大小。<br>-gcpermcapacity：显示永久代的大小。<br>-gcutil：显示垃圾收集信息。<br>-printcompilation：输出 JIT 编译的方法信息。
+  -t|可以在输出信息前加上一个 Timestamp 列，显示程序的运行时间。
+  -h|可以在周期性数据输出时，输出多少行数据后，跟着输出一个表头信息。
+  interval|用于指定输出统计数据的周期，单位毫秒。
+  count|用于指定一共输出多少次数据。
