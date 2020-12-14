@@ -366,3 +366,44 @@
   -h|可以在周期性数据输出时，输出多少行数据后，跟着输出一个表头信息。
   interval|用于指定输出统计数据的周期，单位毫秒。
   count|用于指定一共输出多少次数据。
+
+  输出 ID 为2972的 Java 进程 ClassLoader 相关信息。每秒钟统计一次，共统计两次：
+  ```
+  > jstat -class -t 2972 1000 2
+  Timestamp   Loaded  Bytes   Unloaded  Bytes Time
+  1395.6      2375    2683.8  7         6.2   3.45
+  1396.6      2375    2683.8  7         6.2   3.45
+  ```
+  `-class`输出中，Loaded 表示载入了类的数量，第1个 Bytes 表示载入类的合计大小，Unloaded 表示卸载类的数量，第2个 Bytes 表示卸载类的大小，Time 表示在加载和卸载类上所花的时间。
+
+  查看 JIT 编译信息：
+  ```
+  > jstat -compiler -t 2972
+  Timestamp   Compiled  Failed  Invalid Time  FailedType  FailedMethod
+  1675.9      779       0       0       0.61  0
+  ```
+  Compiled 表示编译任务执行的次数，Failed 表示编译失败的次数，Invalid 表示编译不可用的次数，Time 表示编译的总耗时，FailedType 表示最后一次编译失败的类型，FailedMethod 表示最后一次编译失败的类名和方法名。
+
+  GC 相关的堆信息输出：
+  ```
+  > jstat -gc 2972
+  S0C   S1C   S0U   S1U   EC    EU    OC      OU      PC      PU      YGC   YGCT  FGC FGCT  GCT
+  64.0  64.0  0.0   2.0   896.0 448.9 12312.0 9019.1  12288.0 9101.3  101   0.153 2   0.210 0.364
+  ```
+  参数|说明
+  :--:|:--
+  S0C|s0（From 区）的大小（KB）
+  S1C|s1（From 区）的大小（KB）
+  S0U|s0（From 区）已使用的空间大小（KB）
+  S1U|s1（From 区）已使用的空间大小（KB）
+  EC|Eden 区大小（KB）
+  EU|Eden 区已使用的空间大小（KB）
+  OC|老年代大小（KB）
+  OU|老年代已使用的空间大小（KB）
+  PC|永久区大小（KB）
+  PU|永久区已使用的空间大小（KB）
+  YGC|新生代 GC 次数
+  YGCT|新生代 GC 耗时
+  FGC|Full GC 次数
+  FGCT|Full GC 耗时
+  GCT|GC 总耗时
