@@ -407,3 +407,89 @@
   FGC|Full GC 次数
   FGCT|Full GC 耗时
   GCT|GC 总耗时
+
+  ```
+  > jstat -gccapacity 2972
+  NGCMN   NGCMX   NGC     S0C   S1C   EC    OGCMN   OGCMX     OGC     OC      PGCMN   PGCMX   PGC     PC      YGC FGC
+  1024.0  20160.0 1024.0  64.0  64.0  896.0 4096.0  241984.0  12312.0 12312.0 12288.0 65536.0 12288.0 12288.0 129 2
+  ```
+  参数|说明
+  :--:|:--
+  NGCMN|新生代最小值（KB）
+  NGCMX|新生代最大值（KB）
+  NGC|当前新生代大小（KB）
+  OGCMN|老年代最小值（KB）
+  OGCMX|老年代最大值（KB）
+  PGCMN|永久代最小值（KB）
+  PGCMX|永久代最大值（KB）
+
+  最近一次 GC 的原因，以及当前 GC 的原因：
+  ```
+  > jstat -gccause 2972
+  S0    S1    E     O     P     YGC YGCT  FGC FGCT  GCT   LGCC        GCC
+  0.00  0.00  19.58 59.99 91.43 143 0.207 3   0.331 0.538 System.gc() No GC
+  ```
+  最近一次 GC 是由于显式的`System.gc()`调用所引起的，当前时刻未进行 GC。
+  参数|说明
+  :--:|:--
+  LGCC|上次 GC 的原因
+  GCC|当前 GC 的原因
+
+  查看新生代详细信息：
+  ```
+  > jstat -gcnew 2972
+  S0C    S1C    S0U S1U   TT  MTT DSS   EC      EU    YGC YGCT
+  128.0  128.0  0.0 11.8  15  15  64.0  1024.0  139.8 159 0.223
+  ```
+  参数|说明
+  :--:|:--
+  TT|新生代对象晋升到老年代对象的年龄
+  MTT|新生代对象晋升到老年代对象的年龄最大值
+  DSS|所需的 Survivor 区大小
+
+  详细输出新生代各个区的大小信息：
+  ```
+  > jstat -gcnewcapacity 2972
+  NGCMN   NGCMX   NGC     S0CMX   S0C     S1CMX   S1C   ECMX    EC      YGC FGC
+  1024.0  20160.0 1280.0  128.0   1984.0  1984.0  128.0 16192.0 1024.0  178 3
+  ```
+  参数|说明
+  :--:|:--
+  S0CMX|S0区的最大值（KB）
+  S1CMX|S1区的最大值（KB）
+  ECMX|Eden 区的最大值（KB）
+
+  展现老年代 GC 的情况
+  ```
+  > jstat -gcold 2972
+  PC      PU      OC      OU      YGC FGC FGCT  GCT
+  12288.0 11295.6 15048.0 9106.1  190 3   0.331 0.580
+  ```
+
+  展现老年代容量信息
+  ```
+  > jstat -gcoldcapacity 2972
+  OGCMN   OGCMX     OGC     OC      YGC FGC FGCT  GCT
+  4096.0  241984.0  15048.0 15048.0 195 3   0.331 0.584
+  ```
+
+  展示永久代使用情况
+  ```
+  > jstat -gcpermcapacity 2972
+  PGCMN   PGCMX   PGC     PC      YGC FGC FGCT  GCT
+  12288.0 65536.0 12288.0 12288.0 220 3   0.331 0.605
+  ```
+
+  展示 GC 回收相关情况
+  ```
+  > jstat -gcutil 2972
+  S0    S1    E     O     P     YGC YGCT  FGC FGCT  GCT 
+  7.65  0.00  62.88 60.60 92.19 224 0.277 3   0.331 0.609
+  ```
+  参数|说明
+  :--:|:--
+  S0|S0区使用百分比
+  S1|S1区使用百分比
+  E|Eden 区使用百分比
+  O|Old 区使用百分比
+  P|永久区使用百分比
