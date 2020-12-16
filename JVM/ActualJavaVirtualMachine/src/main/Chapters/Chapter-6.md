@@ -493,3 +493,38 @@
   E|Eden 区使用百分比
   O|Old 区使用百分比
   P|永久区使用百分比
+
+#### 查看虚拟机参数——jinfo 命令
+  jinfo 用来查看正在运行的 Java 程序的扩展参数，支持在运行时修改部分参数。基本语法`jinfo <option> <pid>`
+
+  option 可以是：
+  参数|说明
+  :--:|:--
+  -flag <name>|打印指定虚拟机的参数值
+  -flag [+\|-]<name>|设置指定 Java 虚拟机参数的布尔值
+  -flag <name>=<value>|设置指定 Java 虚拟机参数的值
+
+  很多情况下，Java 应用程序不会指定所有的 Java 虚拟机参数，通过查找文档获取某个参数的默认值。
+
+  查看新生代对象晋升到老年代对象的最大年龄
+  ```
+  > jinfo -flag MaxTenuringThreshold 2972
+  -XX:MaxTenuringThreshold=15
+  ```
+
+  显示是否打印 GC 详细信息
+  ```
+  > jinfo -flag PrintGCDetails 2972
+  -XX:-PrintGCDetails
+  ```
+
+  修改 PrintGCDetails 参数，在 Java 程序运行时，动态关闭或打开这个开关。
+  ```
+  > jinfo -flag PrintGCDetails 2972
+  -XX:-PrintGCDetails
+
+  > jinfo -flag +PrintGCDetails 2972
+  
+  > jinfo -flag PrintGCDetails 2972
+  -XX:+PrintGCDetails
+  ```
