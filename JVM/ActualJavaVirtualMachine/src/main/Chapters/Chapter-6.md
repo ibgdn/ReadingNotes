@@ -528,3 +528,51 @@
   > jinfo -flag PrintGCDetails 2972
   -XX:+PrintGCDetails
   ```
+
+#### 6.3.4 导出堆到文件——jmap 命令
+  jmap 命令可以生成 Java 程序的堆 Dump 文件，可以查看堆内对象实例的统计信息、ClassLoader 信息以及 finalizer 队列。
+
+  生成 Java 程序中 PID 为2972的对象统计信息
+  ```
+  > jmap -histo 2972 >C:\dump.txt
+  ```
+
+  获取 Java 程序的当前堆快照
+  ```
+  > jmap -dump:format=b,file=C:\heap.hprof 2972
+  Dumping heap to C:\heap.hprof ...
+  Heap dump file created
+  ```
+
+  查看系统 ClassLoader 信息
+  ```
+  >jmap -clstats 24716
+  Attaching to process ID 24716, please wait...
+  Debugger attached successfully.
+  Server compiler detected.
+  JVM version is 25.231-b11
+  finding class loader instances ..done.
+  computing per loader stat ..done.
+  please wait.. computing liveness......................................liveness analysis may be inaccurate ...
+  class_loader    classes bytes   parent_loader   alive?  type
+
+  <bootstrap>     1423    2507574   null          live    <internal>
+  0x00000005a042bec0      1830    3192630 0x00000005a043bc90      live    java/net/URLClassLoader@0x00000007c000ef80
+  0x00000005a043bc90      1       1571    0x00000005a043bd00      live    sun/misc/Launcher$AppClassLoader@0x00000007c000f958
+  0x00000005a043bd00      1       673       null          live    sun/misc/Launcher$ExtClassLoader@0x00000007c000fd00
+  0x00000005a0445198      1       1472    0x00000005a042bec0      dead    sun/reflect/DelegatingClassLoader@0x00000007c000a0a0
+  0x00000005a04464a8      1       1472    0x00000005a042bec0      dead    sun/reflect/DelegatingClassLoader@0x00000007c000a0a0
+  0x00000005a07dec10      0       0       0x00000005a043bc90      live    java/util/ResourceBundle$RBClassLoader@0x00000007c0089098
+
+  total = 7       3257    5705392     N/A         alive=5, dead=2     N/A
+  ```
+
+  查看系统 finalizer 队列中的对象。不恰当的 finalizer() 方法可能导致对象堆积在 finalizer 队列中。
+  ```
+  >jmap -finalizerinfo 24536
+  Attaching to process ID 24536, please wait...
+  Debugger attached successfully.
+  Server compiler detected.
+  JVM version is 25.231-b11
+  Number of objects pending for finalization: 0
+  ```
