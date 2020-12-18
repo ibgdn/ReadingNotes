@@ -576,3 +576,6 @@
   JVM version is 25.231-b11
   Number of objects pending for finalization: 0
   ```
+
+#### 6.3.5 JDK 自带的堆分析工具——jhat 命令
+  jhat 用于分析 Java 应用程序的堆快照内容。
