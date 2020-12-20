@@ -581,3 +581,7 @@
   jhat 用于分析 Java 应用程序的堆快照内容。
   
   以 jmap 的输出堆文件 heap.hprof 为例。
+  ```
+  > jhat C:\heap.hprof
+  ```
+  jhat 分析完成后，使用 HTTP 服务器展示分析结果。在浏览器中访问`http://127.0.0.1:7000`
