@@ -539,8 +539,8 @@
 
   获取 Java 程序的当前堆快照
   ```
-  > jmap -dump:format=b,file=C:\heap.hprof 2972
-  Dumping heap to C:\heap.hprof ...
+  > jmap -dump:format=b,file=D:\heap.hprof 27316
+  Dumping heap to D:\heap.hprof ...
   Heap dump file created
   ```
 
@@ -582,6 +582,18 @@
   
   以 jmap 的输出堆文件 heap.hprof 为例。
   ```
-  > jhat C:\heap.hprof
+  >jhat D:\heap.hprof
+  Reading from D:\heap.hprof...
+  Dump file created Mon Dec 21 20:56:15 CST 2020
+  Snapshot read, resolving...
+  Resolving 16162 objects...
+  Chasing references, expect 3 dots...
+  Eliminating duplicate references...
+  Snapshot resolved.
+  Started HTTP server on port 7000
+  Server is ready. 
   ```
+
   jhat 分析完成后，使用 HTTP 服务器展示分析结果。在浏览器中访问`http://127.0.0.1:7000`
+  
+  默认页面中，jhat 服务器显示了所有的非平台类信息。点击链接可以查看选中类的超类、ClassLoader、实例等信息。因为导出的堆快照信息量非常大，很难通过页面上简单的链接索引找到想要的信息，可以使用最后指向 OQL 查询页面的链接进行搜索查询：`select file.path.value.toString() from java.io.File file`。
