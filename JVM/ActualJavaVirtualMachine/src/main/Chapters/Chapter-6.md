@@ -595,5 +595,17 @@
   ```
 
   jhat 分析完成后，使用 HTTP 服务器展示分析结果。在浏览器中访问`http://127.0.0.1:7000`
-  
+
   默认页面中，jhat 服务器显示了所有的非平台类信息。点击链接可以查看选中类的超类、ClassLoader、实例等信息。因为导出的堆快照信息量非常大，很难通过页面上简单的链接索引找到想要的信息，可以使用最后指向 OQL 查询页面的链接进行搜索查询：`select file.path.value.toString() from java.io.File file`。
+
+#### 6.3.6 查看线程栈——jstack 命令
+  jstack 可以导出 Java 程序的线程栈信息：`jstack [-l] <pid>`。
+  -l 选项用于打印锁的附加信息。
+
+  DeadLock：[DeadLock](../java/com/ibgdn/chapter_6/DeadLock.java)
+
+  ```
+  > jstack -l 7492 >D:\chapter-6_deadlock.txt
+  ```
+
+  [chapter-6_deadlock.txt](./chapter-6_deadlock.txt) 文件可以查看到死锁的两个线程，以及死锁线程的持有对象和等待对象。
