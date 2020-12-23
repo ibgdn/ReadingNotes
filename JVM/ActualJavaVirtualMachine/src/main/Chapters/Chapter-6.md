@@ -609,3 +609,52 @@
   ```
 
   [chapter-6_deadlock.txt](./chapter-6_deadlock.txt) 文件可以查看到死锁的两个线程，以及死锁线程的持有对象和等待对象。
+
+#### 6.3.7 远程主机信息收集——jstatd 命令
+  jstatd 是一个 RMI 服务端程序，作用相当于代理服务器，建立本地计算机与远程监控工具的通信。jstatd 服务器将本机的 Java 程序信息传递到远程计算机。
+  
+  ```
+  > jstatd
+  Could not create remote object
+  access denied ("java.util.PropertyPermission" "java.rmi.server.ignoreSubClasses" "write")
+  java.security.AccessControlException: access denied ("java.util.PropertyPermission" "java.rmi.server.ignoreSubClasses" "write")
+          at java.security.AccessControlContext.checkPermission(AccessControlContext.java:472)
+          at java.security.AccessController.checkPermission(AccessController.java:886)
+          at java.lang.SecurityManager.checkPermission(SecurityManager.java:549)
+          at java.lang.System.setProperty(System.java:792)
+          at sun.tools.jstatd.Jstatd.main(Jstatd.java:139)
+  ```
+  由于 jstatd 没有足够的权限，导致使用失败。使用 Java 的安全策略，保存到 jstatd.all.policy 文件中：
+  ```
+  grant codebase "file:../lib/tools.jar" {
+      permission java.security.AllPermission;
+  };
+  ```
+  开启 jstatd 服务器
+  ```
+  > jstatd -J-Djava.security.policy=jstatd.all.policy
+  ```
+  -J 公共参数，jps、jstat 等命令都可以接收这个参数。
+
+  默认情况下，jstatd 在1099端口开启 RMI 服务器
+  ```
+  > netstat -ano | findstr 1099
+    TCP    0.0.0.0:1099           0.0.0.0:0              LISTENING       30408
+    TCP    [::]:1099              [::]:0                 LISTENING       30408
+  ```
+  本机1099端口处于监听状态，相关进程号是20408。使用 jsp 查询进程号 30408 正是 jstatd，启动成功。
+  ```
+  > jps
+  1444 DeadLock
+  27924 Jps
+  30408 Jstatd
+  8184 Launcher
+  10460
+  ```
+
+  jstat 查看远程进程460的 GC 情况
+  ```
+  > jstat -gcutil 6588@localhost:1099
+  S0     S1     E      O      M     CCS    YGC     YGCT    FGC    FGCT     GCT
+  0.00  94.72  34.58   8.88  94.02  90.58     21    0.281     2    0.079    0.360
+  ```
