@@ -658,3 +658,13 @@
   S0     S1     E      O      M     CCS    YGC     YGCT    FGC    FGCT     GCT
   0.00  94.72  34.58   8.88  94.02  90.58     21    0.281     2    0.079    0.360
   ```
+
+#### 6.3.8 多功能命令行——jcmd 命令
+  列出当前系统中所有 Java 虚拟机
+  ```
+  >jcmd -l
+  5696 sun.tools.jcmd.JCmd -l
+  1444 com.ibgdn.chapter_6.DeadLock
+  25976 org.jetbrains.jps.cmdline.Launcher D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/maven-builder-support-3.6.1.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/plexus-interpolation-1.25.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/jna.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/platform-api.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/plugins/java/lib/jps-builders-6.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/maven-artifact-3.6.1.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/maven-resolver-spi-1.3.3.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/plugins/java/lib/maven-resolver-connector-basic-1.3.3.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/jdom.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/netty-buffer-4.1.52.Final.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/plugins/java/lib/maven-resolver-transport-file-1.3.3.jar
+  30408 sun.tools.jstatd.Jstatd
+  ```
