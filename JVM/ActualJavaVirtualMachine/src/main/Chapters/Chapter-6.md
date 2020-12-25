@@ -668,3 +668,39 @@
   25976 org.jetbrains.jps.cmdline.Launcher D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/maven-builder-support-3.6.1.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/plexus-interpolation-1.25.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/jna.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/platform-api.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/plugins/java/lib/jps-builders-6.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/maven-artifact-3.6.1.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/maven-resolver-spi-1.3.3.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/plugins/java/lib/maven-resolver-connector-basic-1.3.3.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/jdom.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/lib/netty-buffer-4.1.52.Final.jar;D:/ProgramFiles/IntelliJetBrains/ideaIU-203.5981.114.win/plugins/java/lib/maven-resolver-transport-file-1.3.3.jar
   30408 sun.tools.jstatd.Jstatd
   ```
+
+  查看虚拟机所支持的命令
+  ```
+  >jcmd 1444 help
+  1444:
+  The following commands are available:
+  JFR.stop
+  JFR.start
+  JFR.dump
+  JFR.check
+  VM.native_memory
+  VM.check_commercial_features
+  VM.unlock_commercial_features
+  ManagementAgent.stop
+  ManagementAgent.start_local
+  ManagementAgent.start
+  VM.classloader_stats
+  GC.rotate_log
+  Thread.print
+  GC.class_stats
+  GC.class_histogram
+  GC.heap_dump
+  GC.finalizer_info
+  GC.heap_info
+  GC.run_finalization
+  GC.run
+  VM.uptime
+  VM.dynlibs
+  VM.flags
+  VM.system_properties
+  VM.command_line
+  VM.version
+  help
+
+  For more information about a specific command use 'help <command>'.
+  ```
