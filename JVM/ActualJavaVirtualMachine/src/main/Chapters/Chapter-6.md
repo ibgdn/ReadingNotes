@@ -704,3 +704,10 @@
 
   For more information about a specific command use 'help <command>'.
   ```
+
+  查看虚拟机启动时间 VM.uptime
+  ```
+  > jcmd 6588 VM.uptime
+  6588:
+  689107.076 s
+  ```
