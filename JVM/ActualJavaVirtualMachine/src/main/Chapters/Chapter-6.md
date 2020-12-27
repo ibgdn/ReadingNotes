@@ -711,3 +711,107 @@
   6588:
   689107.076 s
   ```
+
+  打印线程栈信息
+  ```
+  > jcmd 9608 Thread.print
+  9608:
+  2020-12-27 21:59:57
+  Full thread dump Java HotSpot(TM) 64-Bit Server VM (25.231-b11 mixed mode):
+  
+  "DestroyJavaVM" #14 prio=5 os_prio=0 tid=0x0000000003418000 nid=0x7298 waiting on condition [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "JPS thread pool" #12 daemon prio=5 os_prio=0 tid=0x000000002ae3c800 nid=0x7e2c waiting on condition [0x000000002c52e000]
+     java.lang.Thread.State: TIMED_WAITING (parking)
+          at sun.misc.Unsafe.park(Native Method)
+          - parking to wait for  <0x00000005a0433e68> (a java.util.concurrent.SynchronousQueue$TransferStack)
+          at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:215)
+          at java.util.concurrent.SynchronousQueue$TransferStack.awaitFulfill(SynchronousQueue.java:460)
+          at java.util.concurrent.SynchronousQueue$TransferStack.transfer(SynchronousQueue.java:362)
+          at java.util.concurrent.SynchronousQueue.poll(SynchronousQueue.java:941)
+          at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1073)
+          at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1134)
+          at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+          at java.lang.Thread.run(Thread.java:748)
+    
+  "JPS event loop" #11 prio=5 os_prio=0 tid=0x000000002ab78800 nid=0x2910 runnable [0x000000002bf1e000]
+     java.lang.Thread.State: RUNNABLE
+          at sun.nio.ch.WindowsSelectorImpl$SubSelector.poll0(Native Method)
+          at sun.nio.ch.WindowsSelectorImpl$SubSelector.poll(WindowsSelectorImpl.java:296)
+          at sun.nio.ch.WindowsSelectorImpl$SubSelector.access$400(WindowsSelectorImpl.java:278)
+          at sun.nio.ch.WindowsSelectorImpl.doSelect(WindowsSelectorImpl.java:159)
+          at sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:86)
+          - locked <0x00000005a05a2d38> (a io.netty.channel.nio.SelectedSelectionKeySet)
+          - locked <0x00000005a05c4810> (a java.util.Collections$UnmodifiableSet)
+          - locked <0x00000005a05a3d60> (a sun.nio.ch.WindowsSelectorImpl)
+          at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:97)
+          at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:101)
+          at io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)
+          at io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:805)
+          at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:457)
+          at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:989)
+          at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+          at java.lang.Thread.run(Thread.java:748)
+  
+  "Service Thread" #10 daemon prio=9 os_prio=0 tid=0x0000000029708800 nid=0x8c6c runnable [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "C1 CompilerThread3" #9 daemon prio=9 os_prio=2 tid=0x000000002967c000 nid=0x6e34 waiting on condition [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "C2 CompilerThread2" #8 daemon prio=9 os_prio=2 tid=0x0000000029673000 nid=0x7ad8 waiting on condition [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "C2 CompilerThread1" #7 daemon prio=9 os_prio=2 tid=0x000000002780b000 nid=0x7f58 waiting on condition [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "C2 CompilerThread0" #6 daemon prio=9 os_prio=2 tid=0x000000002966f800 nid=0x59f0 waiting on condition [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "Attach Listener" #5 daemon prio=5 os_prio=2 tid=0x000000002966a000 nid=0x69d4 waiting on condition [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "Signal Dispatcher" #4 daemon prio=9 os_prio=2 tid=0x0000000029617000 nid=0x60c runnable [0x0000000000000000]
+     java.lang.Thread.State: RUNNABLE
+  
+  "Finalizer" #3 daemon prio=8 os_prio=1 tid=0x00000000295f1800 nid=0x8210 in Object.wait() [0x0000000029bcf000]
+     java.lang.Thread.State: WAITING (on object monitor)
+          at java.lang.Object.wait(Native Method)
+          - waiting on <0x00000005a042cd50> (a java.lang.ref.ReferenceQueue$Lock)
+          at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:144)
+          - locked <0x00000005a042cd50> (a java.lang.ref.ReferenceQueue$Lock)
+          at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:165)
+          at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:216)
+  
+  "Reference Handler" #2 daemon prio=10 os_prio=2 tid=0x00000000295f0800 nid=0x6fb4 in Object.wait() [0x0000000029ace000]
+     java.lang.Thread.State: WAITING (on object monitor)
+          at java.lang.Object.wait(Native Method)
+          - waiting on <0x00000005a043bcb0> (a java.lang.ref.Reference$Lock)
+          at java.lang.Object.wait(Object.java:502)
+          at java.lang.ref.Reference.tryHandlePending(Reference.java:191)
+          - locked <0x00000005a043bcb0> (a java.lang.ref.Reference$Lock)
+          at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:153)
+  
+  "VM Thread" os_prio=2 tid=0x00000000277f6800 nid=0x3040 runnable
+  
+  "GC task thread#0 (ParallelGC)" os_prio=0 tid=0x000000000342e000 nid=0x19f4 runnable
+  
+  "GC task thread#1 (ParallelGC)" os_prio=0 tid=0x000000000342f800 nid=0x5aac runnable
+  
+  "GC task thread#2 (ParallelGC)" os_prio=0 tid=0x0000000003431000 nid=0x885c runnable
+  
+  "GC task thread#3 (ParallelGC)" os_prio=0 tid=0x0000000003433800 nid=0x4a48 runnable
+  
+  "GC task thread#4 (ParallelGC)" os_prio=0 tid=0x0000000003435800 nid=0x4fc8 runnable
+  
+  "GC task thread#5 (ParallelGC)" os_prio=0 tid=0x0000000003437000 nid=0x8ac8 runnable
+  
+  "GC task thread#6 (ParallelGC)" os_prio=0 tid=0x000000000343a000 nid=0x5554 runnable
+  
+  "GC task thread#7 (ParallelGC)" os_prio=0 tid=0x000000000343b000 nid=0x910c runnable
+  
+  "VM Periodic Task Thread" os_prio=2 tid=0x0000000029713800 nid=0x5ff0 waiting on condition
+  
+  JNI global references: 424
+  ```
