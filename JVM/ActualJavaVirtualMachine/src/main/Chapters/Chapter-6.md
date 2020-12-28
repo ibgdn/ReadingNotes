@@ -815,3 +815,30 @@
   
   JNI global references: 424
   ```
+
+  查看系统中类的统计信息
+  ```
+  > jcmd 30408 GC.class_histogram
+  30408:
+  
+   num     #instances         #bytes  class name
+  ----------------------------------------------
+      1:          4623         552088  [C
+      2:          1434         162600  java.lang.Class
+      3:          4343         104232  java.lang.String
+      4:          1199          62248  [Ljava.lang.Object;
+      5:           653          37736  [I
+      6:            33          34312  [B
+      7:           794          31760  java.util.TreeMap$Entry
+      8:           541          17312  java.util.concurrent.ConcurrentHashMap$Node
+      9:           324          12960  java.lang.ref.SoftReference
+     10:           202          11312  java.lang.invoke.MemberName
+     11:           341          10912  sun.misc.FDBigInteger
+     12:           217          10176  [Ljava.lang.String;
+     ...           ...            ...  ...
+    502:             1             16  sun.rmi.transport.proxy.RMIDirectSocketFactory
+    503:             1             16  sun.rmi.transport.tcp.TCPTransport$1
+    504:             1             16  sun.security.provider.NativeSeedGenerator
+    505:             1             16  sun.util.calendar.Gregorian
+   Total         20755        1268792
+   ```
