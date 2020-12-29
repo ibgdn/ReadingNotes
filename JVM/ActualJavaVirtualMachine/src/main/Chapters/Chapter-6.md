@@ -842,3 +842,9 @@
     505:             1             16  sun.util.calendar.Gregorian
    Total         20755        1268792
    ```
+
+  导出堆信息
+  ```
+  > jcmd 30408 GC.heap_dump D:\dump_file.dump
+  ```
+  导出的文件可以使用 MAT 或者 Visual VM 工具分析。
