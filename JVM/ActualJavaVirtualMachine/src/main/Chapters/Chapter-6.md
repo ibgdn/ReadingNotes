@@ -848,3 +848,33 @@
   > jcmd 30408 GC.heap_dump D:\dump_file.dump
   ```
   导出的文件可以使用 MAT 或者 Visual VM 工具分析。
+
+  获得系统的 Properties 内容
+  ```
+  > jcmd 30408 VM.system_properties
+  30408:
+  #Wed Dec 30 22:01:03 CST 2020
+  java.runtime.name=Java(TM) SE Runtime Environment
+  java.vm.version=25.231-b11
+  java.vm.vendor=Oracle Corporation
+  java.vendor.url=http\://java.oracle.com/
+  path.separator=;
+  java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+  file.encoding.pkg=sun.io
+  java.rmi.server.ignoreSubClasses=true
+  user.script=
+  user.country=CN
+  sun.java.launcher=SUN_STANDARD
+  sun.os.patch.level=
+  java.vm.specification.name=Java Virtual Machine Specification
+  ...
+  java.vendor=Oracle Corporation
+  sun.stderr.encoding=ms936
+  file.separator=\\
+  java.vendor.url.bug=http\://bugreport.sun.com/bugreport/
+  sun.io.unicode.encoding=UnicodeLittle
+  sun.cpu.endian=little
+  sun.stdout.encoding=ms936
+  sun.desktop=windows
+  sun.cpu.isalist=amd64
+  ```
