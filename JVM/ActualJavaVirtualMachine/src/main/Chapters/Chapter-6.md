@@ -878,3 +878,10 @@
   sun.desktop=windows
   sun.cpu.isalist=amd64
   ```
+
+  获取启动参数
+  ```
+  >jcmd 30408 VM.flags
+  30408:
+  -XX:CICompilerCount=4 -XX:InitialHeapSize=8388608 -XX:MaxHeapSize=8568963072 -XX:MaxNewSize=2856321024 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=2621440 -XX:OldSize=5767168 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
+  ```
