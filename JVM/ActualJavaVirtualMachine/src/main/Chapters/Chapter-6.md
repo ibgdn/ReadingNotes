@@ -885,3 +885,51 @@
   30408:
   -XX:CICompilerCount=4 -XX:InitialHeapSize=8388608 -XX:MaxHeapSize=8568963072 -XX:MaxNewSize=2856321024 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=2621440 -XX:OldSize=5767168 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
   ```
+
+  获得所有性能统计相关数据
+  ```
+  >jcmd 30408 PerfCounter.print
+  30408:
+  java.ci.totalTime=48914088
+  java.cls.loadedClasses=1383
+  java.cls.sharedLoadedClasses=0
+  java.cls.sharedUnloadedClasses=0
+  java.cls.unloadedClasses=26
+  ...
+  sun.rt._sync_ContendedLockAttempts=6
+  sun.rt._sync_Deflations=15305
+  sun.rt._sync_EmptyNotifications=0
+  sun.rt._sync_FailedSpins=0
+  sun.rt._sync_FutileWakeups=0
+  sun.rt._sync_Inflations=15311
+  sun.rt._sync_MonExtant=256
+  sun.rt._sync_MonInCirculation=0
+  sun.rt._sync_MonScavenged=0
+  sun.rt._sync_Notifications=779
+  sun.rt._sync_Parks=790
+  sun.rt._sync_PrivateA=0
+  sun.rt._sync_PrivateB=0
+  sun.rt._sync_SlowEnter=0
+  sun.rt._sync_SlowExit=0
+  sun.rt._sync_SlowNotify=0
+  sun.rt._sync_SlowNotifyAll=0
+  sun.rt._sync_SuccessfulSpins=0
+  sun.rt.applicationTime=7728109859807
+  sun.rt.createVmBeginTime=1608731046196
+  sun.rt.createVmEndTime=1608731046276
+  sun.rt.internalVersion="Java HotSpot(TM) 64-Bit Server VM (25.231-b11) for windows-amd64 JRE (1.8.0_231-b11), built on Oct  5 2019 03:11:30 by "java_re" with MS VC++ 10.0 (VS2010)"
+  sun.rt.interruptedBeforeIO=0
+  sun.rt.interruptedDuringIO=0
+  sun.rt.javaCommand="sun.tools.jstatd.Jstatd"
+  sun.rt.jvmCapabilities="1100000000000000000000000000000000000000000000000000000000000000"
+  sun.rt.jvmVersion=434569227
+  sun.rt.safepointSyncTime=5454725
+  sun.rt.safepointTime=161164053
+  sun.rt.safepoints=18872
+  sun.rt.threadInterruptSignaled=0
+  sun.rt.vmInitDoneTime=1608731046260
+  sun.threads.vmOperationTime=148053862
+  sun.urlClassLoader.readClassBytesTime=3825500
+  sun.zip.zipFile.openTime=2404600
+  sun.zip.zipFiles=3
+  ```
