@@ -989,3 +989,29 @@
     - The option format=b is considered experimental, this format may change
       in a future release.
   ```
+
+  方法占用 CPU 的时间：[HProfTest](../java/com/ibgdn/chapter_6/HProfTest.java)
+
+  VM options：
+  ```
+  -agentlib:hprof=cpu=times,interval=10
+  ```
+  会在项目根目录下生成`java.hprof.txt`文件，部分内容如下：
+  ```
+  CPU TIME (ms) BEGIN (total = 11609) Mon Jan 04 22:33:26 2021
+  rank   self  accum   count trace method
+     1 86.14% 86.14%       1 303655 com.ibgdn.chapter_6.HProfTest.slowerMethod
+     2  8.62% 94.76%       1 303654 com.ibgdn.chapter_6.HProfTest.slowMethod
+     3  0.40% 95.16%    5578 300421 java.lang.AbstractStringBuilder.append
+     4  0.25% 95.41%      43 300427 java.io.WinNTFileSystem.normalize
+     5  0.23% 95.64%    2676 300443 java.lang.Character.toLowerCase
+     6  0.20% 95.84%    5578 300422 java.lang.StringBuffer.append
+     7  0.18% 96.02%      19 300868 sun.misc.URLClassPath$JarLoader.getJarFile
+     8  0.18% 96.20%    2676 300442 java.lang.CharacterDataLatin1.toLowerCase
+     9  0.15% 96.35%      24 300456 java.lang.String$CaseInsensitiveComparator.compare
+    10  0.13% 96.48%    6181 300418 java.lang.String.charAt
+  ```
+
+  使用参数`-agentlib:hprof=heap=dump,format=b,file=D:\core.hprof`，会将程序的堆快照保存在指定文件`D:\core.hprof`中。使用 MAT 或者 Visual VM 等工具可以分析这个堆信息文件。
+
+  使用参数`-agentlib:hprof=heap=sites`，可以输出 Java 程序中，每个跟踪点上类所占内存的百分比。
