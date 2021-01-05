@@ -1015,3 +1015,16 @@
   使用参数`-agentlib:hprof=heap=dump,format=b,file=D:\core.hprof`，会将程序的堆快照保存在指定文件`D:\core.hprof`中。使用 MAT 或者 Visual VM 等工具可以分析这个堆信息文件。
 
   使用参数`-agentlib:hprof=heap=sites`，可以输出 Java 程序中，每个跟踪点上类所占内存的百分比。
+
+### 6.4 我是你的眼：图形化虚拟机监控工具 JConsole
+  JConsole 是 JDK 自带的图形化性能监控工具，可以查看 Java 应用程序运行概况，监控堆信息、永久区使用情况、类加载情况等。
+
+#### 6.4.1 JConsole 连接 Java 程序
+  新建连接对话时，在对话框会列出本地 Java 应用程序。如果需要远程连接，在远程 Java 应用程序启动时，添加参数：
+  ```
+  -Djava.rmi.server.hostname=127.0.0.1
+  -Dcom.sun.management.jmxremote
+  -Dcom.sun.management.jmxremote.port=8888
+  -Dcom.sun.management.jmxremote.authenticate=false
+  -Dcom.sun.management.jmxremote.ssl=false
+  ```
