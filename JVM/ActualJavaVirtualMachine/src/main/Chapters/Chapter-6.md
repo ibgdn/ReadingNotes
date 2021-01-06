@@ -1028,3 +1028,15 @@
   -Dcom.sun.management.jmxremote.authenticate=false
   -Dcom.sun.management.jmxremote.ssl=false
   ```
+
+### 6.5 一目了然：可视化性能监控工具 Visual VM
+  Visual VM 是一个功能强大的多合一故障诊断和性能监控的可视化工具，可以替代 jstat、jmap、jhat、jstack 等。
+
+  通过以下参数打开 JMX 端口：
+  ```
+  -Djava.rmi.server.hostname=127.0.0.1
+  -Dcom.sun.management.jmxremote
+  -Dcom.sun.management.jmxremote.port=8888
+  -Dcom.sun.management.jmxremote.authenticate=false
+  -Dcom.sun.management.jmxremote.ssl=false
+  ```
