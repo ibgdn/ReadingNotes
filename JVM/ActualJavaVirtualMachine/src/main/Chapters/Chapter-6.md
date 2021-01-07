@@ -1040,3 +1040,6 @@
   -Dcom.sun.management.jmxremote.authenticate=false
   -Dcom.sun.management.jmxremote.ssl=false
   ```
+
+### 6.6 来自 JRockit 的礼物：虚拟机诊断工具 Mission Control
+  Mission Control 位于`%JAVA_HOME%/bin/jmc.exe`。
