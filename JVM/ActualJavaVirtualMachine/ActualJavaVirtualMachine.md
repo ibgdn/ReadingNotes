@@ -15,3 +15,6 @@
   
 ## 第6章 性能监控工具
   [性能监控工具](src/main/Chapters/Chapter-6.md)
+
+## 第7章 分析 Java 堆
+  [分析 Java 堆](src/main/Chapters/Chapter-7.md)
