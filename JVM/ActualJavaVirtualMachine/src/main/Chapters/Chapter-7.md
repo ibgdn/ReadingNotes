@@ -13,3 +13,22 @@
   ```
 
   `Java heap space`表示是一次堆空间溢出。可以通过增加堆空间，或者使用 MAT 、Visual VM 分析占用大量堆空间的对象，合理优化。
+
+#### 7.1.2 直接内存溢出
+  Java 的 NIO（New IO）支持直接内存的使用，即通过 Java 代码，获得一块堆外的内存空间，该空间直接向操作系统申请。直接内存的申请速度一般比堆内存空间慢，但是访问速度要快于堆内存。对于那些可复用，并且会经常访问的空间，使用直接内存可以提高系统性能。由于直接内存没有被 Java 虚拟机完全托管，使用不当容易触发直接内存溢出，导致宕机。
+
+  [直接内存溢出](../java/com/ibgdn/chapter_7/DirectBufferOOM.java)
+
+  ```
+  [GC (Allocation Failure) [PSYoungGen: 509K->504K(1024K)] 509K->528K(1536K), 0.0008509 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 1016K->488K(1024K)] 1040K->608K(1536K), 0.0010714 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (Allocation Failure) [PSYoungGen: 995K->504K(1024K)] 1115K->688K(1536K), 0.0011863 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [GC (System.gc()) [PSYoungGen: 614K->488K(1024K)] 798K->724K(1536K), 0.0009554 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+  [Full GC (System.gc()) [PSYoungGen: 488K->455K(1024K)] [ParOldGen: 236K->166K(512K)] 724K->622K(1536K), [Metaspace: 3128K->3128K(1056768K)], 0.0059841 secs] [Times: user=0.02 sys=0.00, real=0.01 secs] 
+  Exception in thread "main" java.lang.OutOfMemoryError: Direct buffer memory
+  	at java.nio.Bits.reserveMemory(Bits.java:694)
+  	at java.nio.DirectByteBuffer.<init>(DirectByteBuffer.java:123)
+  	at java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:311)
+  	at com.ibgdn.chapter_7.DirectBufferOOM.main(DirectBufferOOM.java:14)
+  ```
+  出现内存溢出，Java 垃圾回收机制没有发挥作用。for 循环中分配的直接内存没有被任何对象引用，为什么没有被回收？只有直接内存使用量达到`-XX:MaxDirectMemorySize`的设置值，才会触发 GC，设置合理的`-XX:MaxDirectMemorySize`值（默认情况下等于`-Xmx`的设置）或者保证 Full GC 的执行。
