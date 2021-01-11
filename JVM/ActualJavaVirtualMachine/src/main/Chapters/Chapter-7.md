@@ -32,3 +32,24 @@
   	at com.ibgdn.chapter_7.DirectBufferOOM.main(DirectBufferOOM.java:14)
   ```
   出现内存溢出，Java 垃圾回收机制没有发挥作用。for 循环中分配的直接内存没有被任何对象引用，为什么没有被回收？只有直接内存使用量达到`-XX:MaxDirectMemorySize`的设置值，才会触发 GC，设置合理的`-XX:MaxDirectMemorySize`值（默认情况下等于`-Xmx`的设置）或者保证 Full GC 的执行。
+
+#### 7.1.3 过多线程导致 OOM
+  每个线程的开启都会占用系统内存，当线程数量过多时，也会导致 OOM。由于线程的栈空间在堆外分配，因此和直接内存非常相似，想让系统支持更多的线程，应该使用一个较小的堆空间（栈空间相对变大）。
+
+  [多线程内存溢出](../java/com/ibgdn/chapter_7/MultiThreadOOM.java)
+
+  ```
+  Thread 1416 created.
+        Thread 1417 created.
+        Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+        at java.nio.CharBuffer.wrap(CharBuffer.java:373)
+        at sun.nio.cs.StreamEncoder.implWrite(StreamEncoder.java:265)
+        at sun.nio.cs.StreamEncoder.write(StreamEncoder.java:125)
+        at java.io.OutputStreamWriter.write(OutputStreamWriter.java:207)
+        at java.io.BufferedWriter.flushBuffer(BufferedWriter.java:129)
+        at java.io.PrintStream.write(PrintStream.java:526)
+        at java.io.PrintStream.print(PrintStream.java:669)
+        at java.io.PrintStream.println(PrintStream.java:806)
+        at com.ibgdn.chapter_7.MultiThreadOOM.main(MultiThreadOOM.java:36)
+  ```
+  在线程1417创建时，抛出了 OOM，表示系统创建线程的数量已经饱和，Java 进程已经达到了可用内存上限。
