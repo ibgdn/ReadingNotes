@@ -53,3 +53,17 @@
         at com.ibgdn.chapter_7.MultiThreadOOM.main(MultiThreadOOM.java:36)
   ```
   在线程1417创建时，抛出了 OOM，表示系统创建线程的数量已经饱和，Java 进程已经达到了可用内存上限。
+
+#### 7.1.5 GC 效率低下引起的 OOM
+  虚拟机会检查以下几种情况：
+  - 花在 GC 上的时间是否超过了98%
+  - 老年代释放的内存是否小于2%
+  - Eden 区释放的内存是否小于2%
+  - 是否连续最近5次 GC 都同时出现了上述几种情况
+
+  只有满足所有条件，虚拟机才有可能抛出如下 OOM：
+  ```
+  java.lang.OutOfMemoryError: GC overhead limit exceeded
+  ```
+
+  这个 OOM 只起辅助作用，用来帮助提示系统分配的堆空间可能大小，虚拟机不强制一定开启这个错误提示，可以通过开关`-XX:-UseGCOverheadLimit`来禁止这种 OOM 产生。
