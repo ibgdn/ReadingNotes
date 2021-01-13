@@ -67,3 +67,39 @@
   ```
 
   这个 OOM 只起辅助作用，用来帮助提示系统分配的堆空间可能大小，虚拟机不强制一定开启这个错误提示，可以通过开关`-XX:-UseGCOverheadLimit`来禁止这种 OOM 产生。
+
+### 7.2 无处不在的字符串：String 在虚拟机中的实现
+#### 7.2.1 String 对象的特点
+  String 对象的特点：
+  - 不变性
+  - 针对常量池的优化
+  - 类的 final 定义
+
+1. 不变性
+  String 对象一旦生成，无法进行改变。这个特性可以泛化成不变（immutable）模式，即一个对象的状态在对象被创建之后就不再发生变化。不变模式的主要作用在于，当一个对象需要被多线程共享，并且频繁访问时，可以省略同步和锁等待的时间，从而大幅度提高系统性能。
+
+  由于不变性，一些看起来像是修改的操作，实际上都是依靠产生新的字符串实现的。比如`String.substring()`、`String.concat()`方法，都没有修改原始字符串，而是产生了一个新的字符串。如果需要一个可修改的字符串，可以使用 StringBuffer 或者 StringBuilder 对象。
+
+2. 针对常量池的优化
+  针对常量池的优化是指，当两个 String 对象拥有相同的值时，它们只引用常量池中的同一个拷贝。当同一个字符串反复出现时，可以大幅度节省内存空间。
+
+  ```java
+  String str1 = new String("abc");
+  String str2 = new String("abc");
+  System.out.println(str1 == str2);                     // false
+  System.out.println(str1 == str2.intern());            // false
+  System.out.println(str1.intern() == str2.intern());   // true 
+  System.out.println("abc" == str2.intern());           // true 
+  ```
+  代码块中 str1 和 str2 都开辟了一块堆空间存放 String 对象实例，如下图所示（String 内存分配方式）。虽然 str1 和 str2 内容相同，但是在堆中的引用是不同的。`String.intern()`返回字符串在常量池中的引用，显然和 str1 也是不同的。`String.intern()`始终和常量字符串相等。
+  ```mermaid
+  graph LR 
+  A[变量 str1] ----> B[内存空间 str 实例引用]
+  C[变量 str2] ----> D[内存空间 str 实例引用]
+  E[变量池 abc]
+  B ----> E
+  D ----> E
+  ```
+
+3. 类的 final 定义
+  final 类型定义也是 String 对象的重要特点。作为 final 类的 String 对象在系统中不可能有任何子类，这是对系统安全性的保护。在 JDK 1.5之前的环境中，使用 final 定义有助于帮助虚拟机寻找机会，内联所有的 final 方法，从而提高系统效率。在 JDK 1.5之后，效果并不明显。
