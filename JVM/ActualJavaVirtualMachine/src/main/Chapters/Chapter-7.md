@@ -110,3 +110,31 @@
   JDK 1.6 中`java.lang.String`主要由3部分组成：代表字符数组的 value、偏移量 offset 和长度 count。由三部分共同决定一个字符串，如果出现字符串 value 包含100个字符串，实际 count 只需要1个字节，那么 String 实际只有1个字符，却占据了100个字节，99个属于内存泄漏部分，不会被使用，不会被释放，长期占用内存，直到字符串本身被回收。如果使用了`String.substring()`将一个大字符串切割为小字符串，当大字符串被回收时，小字符串的存在就会引起内存泄漏。
 
   在新版的`substring()`中，不再复用原 String 的 value，而是将实际需要的部分做了复制。
+
+#### 7.2.3 有关 String 常量池的位置
+  在虚拟机中，有一块称为常量池的区域，专门用于存放字符串常量。JDK 1.6之前属于永久区的一部分，JDK 1.7之后，被移到了堆中进行管理。
+
+  [常量池溢出](../java/com/ibgdn/chapter_7/StringInternOOM.java)
+
+  ```
+  Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+  	  at java.util.Arrays.copyOf(Arrays.java:3210)
+      at java.util.Arrays.copyOf(Arrays.java:3181)
+      at java.util.ArrayList.grow(ArrayList.java:265)
+      at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:239)
+      at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:231)
+      at java.util.ArrayList.add(ArrayList.java:462)
+      at com.ibgdn.chapter_7.StringInternOOM.main(StringInternOOM.java:17)
+  Java HotSpot(TM) 64-Bit Server VM warning: ignoring option MaxPermSize=5m; support was removed in 8.0
+  ```
+
+  需要注意的是，虽然`String.intern()`的返回值永远等于字符串常量。相同字符串的`intern()`返回都是一样的（95%以上的情况）。同时存在一种可能情况：在`intern()`被调用之后，该字符串在某一时刻被回收之后，再进行一次`intern()`调用，字面量相同的字符串重新被加入常量池，但是引用位置已经不同。
+
+  [常量引用位置变动](../java/com/ibgdn/chapter_7/ConstantPool.java)
+
+  ```
+  697960108
+  943010986
+  1807837413
+  ```
+  输出三次字符串的 Hash 值，第一次为字符串本身，第二次为常量池引用，第三次为进行了常量池回收后的相同字符串的常量池引用。3次 Hash 值都是不同的。如果不进行程序当中的显示 GC 操作，后两次 Hash 值应当是相同的。
