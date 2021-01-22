@@ -3,6 +3,10 @@ package com.ibgdn.chapter_7.mat;
 import java.util.List;
 import java.util.Vector;
 
+ /**
+ * VM options：
+ * -XX:+HeapDumpBeforeFullGC -XX:HeapDumpPath=D:/stu.hprof
+ */
 public class TraceStudent {
     static List<WebPage> webPages = new Vector<>();
 
