@@ -93,7 +93,7 @@
   ```
   代码块中 str1 和 str2 都开辟了一块堆空间存放 String 对象实例，如下图所示（String 内存分配方式）。虽然 str1 和 str2 内容相同，但是在堆中的引用是不同的。`String.intern()`返回字符串在常量池中的引用，显然和 str1 也是不同的。`String.intern()`始终和常量字符串相等。
   ```mermaid
-  graph LR 
+  graph LR
   A[变量 str1] ----> B[内存空间 str 实例引用]
   C[变量 str2] ----> D[内存空间 str 实例引用]
   E[变量池 abc]
@@ -167,3 +167,25 @@
   - 对象 A 的子树（所有被对象 A 支配的对象集合）表示对象 A 的保留集（Retained Set），即深堆。
   - 如果对象 A 支配对象 B，那么对象 A 的直接支配者也支配对象 B。
   - 支配树的边与对象引用图的边不直接对应。
+
+  ```mermaid
+  graph BT
+  A[A] ----> C[C]
+  B[B] ----> C[C]
+  C[C] ----> D[D]
+  C[C] ----> E[E]
+  D[D] ----> F[F]
+  F[F] ----> D[D]
+  F[F] ----> H[H]
+  E[E] ----> G[G]
+  G[G] ----> H[H]
+  
+  A0[ ] ----> AA[A]
+  A0[ ] ----> BB[B]
+  A0[ ] ----> CC[C]
+  CC[C] ----> DD[D]
+  CC[C] ----> EE[E]
+  CC[C] ----> HH[H]
+  DD[D] ----> FF[F]
+  EE[E] ----> GG[G]
+  ```
