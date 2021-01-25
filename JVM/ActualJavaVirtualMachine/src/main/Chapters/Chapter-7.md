@@ -189,3 +189,6 @@
   DD[D] ----> FF[F]
   EE[E] ----> GG[G]
   ```
+
+#### 7.3.5 Tomcat 堆溢出分析
+  Tomcat 是常用的 Java Servlet 容器之一，也可以当作单独的 Web 服务器使用。Tomcat 本身使用 Java 实现，并运行于 Java 虚拟机上，在大规模请求时，Tomcat 可能会因为无法承受压力而发生内存溢出。
