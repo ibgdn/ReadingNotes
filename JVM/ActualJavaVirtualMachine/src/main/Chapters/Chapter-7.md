@@ -193,5 +193,11 @@
 #### 7.3.5 Tomcat 堆溢出分析
   Tomcat 是常用的 Java Servlet 容器之一，也可以当作单独的 Web 服务器使用。Tomcat 本身使用 Java 实现，并运行于 Java 虚拟机上，在大规模请求时，Tomcat 可能会因为无法承受压力而发生内存溢出。
 
-#### 7.4 筛选堆对象：MAT 对 OQL 的支持
+### 7.4 筛选堆对象：MAT 对 OQL 的支持
   MAT 支持一种类似于 SQL 的查询语言 OQL（Object Query Language）。OQL 使用类 SQL 语法，可以在堆中进行对象的查找和筛选。
+
+#### 7.4.1 Select 子句
+  Select 子句中可以使用“*”，查看结果对象的引用实例（相当于 outgoing references）。
+  ```sql
+  SELECT * FROM java.util.Vector v
+  ```
