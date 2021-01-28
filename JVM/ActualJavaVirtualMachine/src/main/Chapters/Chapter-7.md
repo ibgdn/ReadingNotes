@@ -201,3 +201,23 @@
   ```sql
   SELECT * FROM java.util.Vector v
   ```
+
+  使用关键字“OBJECTS”，返回结果集中的项一对象的形式显示
+  ```
+  SELECT OBJECTS v.elementData FROM java.util.Vector v
+  ```
+
+  显示 String 对象的 char 数组
+  ```
+  SELECT OBJECTS s.value FROM java.lang.String s
+  ```
+
+  Select 子句中，使用`AS RETAINED SET`关键字可以得到所得对象的保留集。得到`com.ibgdn.chapter_7.mat.Student`对象的保留集
+  ```
+  SELECT AS RETAINED SET * FROM com.ibgdn.chapter_7.mat.Student
+  ```
+
+  `DISTINCT`关键字用于在结果集中去除重复对象。输出结果集中只有一条`class java.lang.String`的记录。如果没有关键字，查询将为每个 String 实例输出其对应的 Class 信息。
+  ```
+  SELECT DISTINCT OBJECTS classof(s) FROM java.lang.String s
+  ```
