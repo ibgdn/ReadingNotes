@@ -221,3 +221,35 @@
   ```
   SELECT DISTINCT OBJECTS classof(s) FROM java.lang.String s
   ```
+
+#### 7.4.2 From 子句
+  From 子句用于指定查询范围，可以指定类名、正则表达式或者对象地址。
+
+  输出所有`java.lang.String`实例
+  ```
+  SELECT * FROM java.lang.String s
+  ```
+
+  输出所有`com.ibgdn`包下，类的实例
+  ```
+  SELECT * FROM "com\.ibgdn\..*"
+  ```
+
+  查询类的地址，可以区分被不同 ClassLoader 加载的同一类型。
+  ```
+  SELECT * FROM 0x37a014d8
+  ```
+
+  添加 INSTANCEOF 关键字，返回指定类的所有子类实例。
+  ```
+  SELECT * FROM INSTANCEOF java.util.AbstractCollection
+  ```
+
+  添加 OBJECTS 关键字，原本应该返回类的实例的查询，将返回类的信息。
+  ```
+  SELECT * FROM OBJECTS java.lang.String
+  ```
+  返回所有满足给定正则表达式的所有类
+  ```
+  SELECT * FROM OBJECTS "com\.ibgdn\..*"
+  ```
