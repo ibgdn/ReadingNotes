@@ -253,3 +253,26 @@
   ```
   SELECT * FROM OBJECTS "com\.ibgdn\..*"
   ```
+
+#### 7.4.3 Where 子句
+  Where 子句用于指定 OQL 的查询条件。
+
+  返回长度大于10的 char 数组。
+  ```
+  SELECT * FROM char[] s WHERE s.@length>10
+  ```
+
+  返回包含`java`子字符串的所有字符串，使用`LIKE`操作符。
+  ```
+  SELECT * FROM java.lang.String s WHERE toString(s) LIKE ".*java.*"
+  ```
+
+  返回所有 value 域不为 null 的字符串，使用“=”操作符。
+  ```
+  SELECT * FROM java.lang.String s WHERE s.value!=null
+  ```
+
+  返回数组长度大于15，并且深堆大于1000字节的所有 Vector 对象。
+  ```
+  SELECT * FROM java.util.Vector v WHERE v.elementData.@length>15 AND v.@retainedHeapSize>1000 
+  ```
