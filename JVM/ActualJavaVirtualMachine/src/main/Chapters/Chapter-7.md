@@ -276,3 +276,41 @@
   ```
   SELECT * FROM java.util.Vector v WHERE v.elementData.@length>15 AND v.@retainedHeapSize>1000 
   ```
+
+#### 7.4.4 内置对象与方法
+  OQL 中可以访问堆内对象的属性，也可以访问堆内代理对象的属性。
+
+  访问堆内对象，alias 为对象名
+  ```
+  [ <alias>. ] <field> . <field>. <field>
+  ```
+
+  访问 java.io.File 对象的 path 属性及其 value 属性
+  ```
+  SELECT toString(f.path.value) FROM java.io.File f
+  ```
+
+  MAT 为了能快捷地获取堆内对象的额外属性（比如对象占用的堆大小、对象地址等），为每种元类型的堆内对象建立了相应的代理对象，以增强原有的对象功能。访问代理对象属性，alias 对象名称，attribute 属性名称。
+  ```
+  [ <alias>. ] @<attribute>
+  ```
+
+  显示 String 对象的内容、objectId 和 objectAddress
+  ```
+  SELECT s.toString(), s.@objectId, s.@objectAddress FROM java.lang.String s
+  ```
+
+  显示 File 对象的对象 Id、对象地址、代理对象类型、类的类型、对象的浅堆大小以及对象的显示名称
+  ```
+  SELECT f.@objctId, f.@objectAddress, f.@class, f.@clazz, f.@usedHeapSize, f.@displayName FROM java.io.File f
+  ```
+
+  显示 java.util.Vector 内部数组的长度
+  ```
+  SELECT v.elementData.@length FROM java.util.Vector v
+  ```
+
+  除了使用代理对象的属性，OQL 中还可以使用代理对象的方法
+  ```
+  [ <alias> . ] @<method>( [ <expression>, <expression> ] )
+  ```
