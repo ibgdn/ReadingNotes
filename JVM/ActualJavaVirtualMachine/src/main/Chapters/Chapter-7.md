@@ -314,3 +314,16 @@
   ```
   [ <alias> . ] @<method>( [ <expression>, <expression> ] )
   ```
+
+### 7.5 更精彩的查找：Visual VM 对 OQL 的支持
+#### 7.5.1 Visual VM 的 OQL 基本语法
+  Visual VM 的 OQL 语言是一种类似于 SQL 的查询语言，基本语法如下：
+  ```
+  select <JavaScript expression to select>
+  [from [instanceof] <class name> <identifier>
+  [where <JavaScript boolean expression to filter> ] ]
+  ```
+
+  OQL 由3部分组成：select 子句、from 子句、where 子句。select 子句指定查询结果要显示的内容。from 子句指定查询范围，可指定类名，如 java.lang.String、char[]、[Ljava.io.File;(File 数组)。where 子句用于指定查询条件。
+
+  注意：**MAT 的 OQL 关键字大小写都可以，但是 Visual VM 必须统一使用小写**。
