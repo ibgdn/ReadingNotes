@@ -327,3 +327,25 @@
   OQL 由3部分组成：select 子句、from 子句、where 子句。select 子句指定查询结果要显示的内容。from 子句指定查询范围，可指定类名，如 java.lang.String、char[]、[Ljava.io.File;(File 数组)。where 子句用于指定查询条件。
 
   注意：**MAT 的 OQL 关键字大小写都可以，但是 Visual VM 必须统一使用小写**。
+
+  select 子句和 where 子句支持使用 JavaScript 语法处理较为复杂的的查询逻辑，select 子句可以使用类似 json 的语法输出多个列。from 子句中可以使用 instanceof 关键字，将给定类的子类也包括到输出列表中。
+
+  直接访问对象的属性和部分方法。筛选出长度不小于100的字符串。
+  ```
+  select s from java.lang.String s where s.value.length >= 100
+  ```
+
+  筛选出以“ice”开头的字符串
+  ```
+  select {instance: s, content: s.toString()} from java.lang.String s where /^ice.*$/(s.toString())
+  ```
+
+  筛选出所有的文件路径及文件对象
+  ```
+  select {content: file.path.toString(), instance: file} from java.io.File file
+  ```
+
+  使用 instanceof 关键字，选取所有的 ClassLoader（包括子类）
+  ```
+  select cl from instanceof java.lang.ClassLoader cl
+  ```
