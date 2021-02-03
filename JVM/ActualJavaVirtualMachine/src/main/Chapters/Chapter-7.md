@@ -349,3 +349,47 @@
   ```
   select cl from instanceof java.lang.ClassLoader cl
   ```
+
+#### 7.5.2 内置 heap 对象
+  heap 对象是 Visual VM OQL 的内置对象。通过 heap 对象可以实现一些强大的 OQL 功能。
+
+  查找 java.util.Vector 类
+  ```
+  select heap.findClass("java.util.Vector")
+  ```
+
+  查找 java.util.Vector 类
+  ```
+  select heap.findClass("java.util.Vector").superclasses()
+  ```
+  输出
+  ```
+  java.util.AbstractList
+  java.util.AbstractCollection
+  java.lang.Object
+  ```
+
+  查找所有在`java.io`包下的对象
+  ```
+  select filter(heap.classes(), "/java.io./(it.name)")
+  ```
+
+  查找字符串“56”的引用链
+  ```
+  select heap.livepaths(s) from java.lang.String s where s.toString() == '56'
+  ```
+
+  查找堆的根对象
+  ```
+  select heap.roots()
+  ```
+
+  查找堆中所有`java.io.File`对象实例，参数 true 表示包含子类
+  ```
+  select heap.objects("java.io.File",true)
+  ```
+
+  访问 TraceStudnet 类的静态成员 webpages 对象
+  ```
+  select heap.findClass("com.ibgdn.chapter_7.mat.TraceStudent").webpages
+  ```
