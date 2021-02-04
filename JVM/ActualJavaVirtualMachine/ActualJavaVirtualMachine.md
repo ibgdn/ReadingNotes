@@ -18,3 +18,6 @@
 
 ## 第7章 分析 Java 堆
   [分析 Java 堆](src/main/Chapters/Chapter-7.md)
+
+## 第8章 锁与并发
+  [锁与并发](src/main/Chapters/Chapter-8.md)
