@@ -11,3 +11,17 @@
   要处理这个问题就可以使用锁来解决。对于对象 S 的所有操作使用锁进行控制，每一次只允许一个线程对其操作，如果线程 A 先获得锁，那么线程 A 将完成它对对象 S 的所有处理，最后释放锁。而线程 B 由于没能请求到锁，就会进行等待，直到线程 A 释放了锁，线程 B 才得以获得锁。在这种情况下，只有在被锁保护的代码段内，对象的状态会出现短暂的不一致（幸运的是，这种状态被锁保护，因此其他线程也无法观察到这种状态），但只要线程 A 或者线程 B 完成了它的工作，对象 S 的状态就是一致的，即对象 S 保存的数据不是小明的，就是小王的，而不是两者的混合体。
 
   数据的不一致不仅会使得程序给出错误的结果，也可能导致程序异常崩溃。
+
+  [ArrayList 在多线程下使用](../java/com/ibgdn/chapter_8/ThreadUnSafe.java)
+
+  两个线程同时向 List 集合中增加数据，由于 ArrayList 不是线程安全的，很可能抛出如下错误（也有可能不出错）。
+
+  输出结果：
+  ```
+  Exception in thread "Thread-1" java.lang.ArrayIndexOutOfBoundsException: 10
+	  at java.util.ArrayList.add(ArrayList.java:463)
+	  at com.ibgdn.chapter_8.ThreadUnSafe$AddToList.run(ThreadUnSafe.java:35)
+	  at java.lang.Thread.run(Thread.java:748)
+  ```
+
+  出现这个问题，是因为两个线程同时对 ArrayList 进行写操作，破坏了 ArrayList 内部数据的一致性，导致其中一个线程访问了错误的数组索引。简单的修正方法是使用 Vector 代替 ArrayList，Vector 通过内部锁实现对 List 对象控制。
