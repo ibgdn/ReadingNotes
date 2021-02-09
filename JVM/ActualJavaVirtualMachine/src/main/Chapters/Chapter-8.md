@@ -89,3 +89,25 @@
   `-XX:BiasedLockingStartupDelay`表示虚拟机在启动后，立即启用偏向锁。如果不设置该参数，虚拟机默认会在启动4秒后，才启用偏向锁，考虑到程序运行时间较短，故做此设置。
 
   **偏向锁在锁竞争的激烈的场合没有太强的优化效果**。因为大量的竞争会导致持有锁的线程不停地切换，锁也很难一直保持在偏向模式，此时，使用锁偏向不仅得不到性能的优化，反而有可能降低系统性能。在激烈竞争的场合，可以尝试使用`-XX:-UseBasedLocking`参数禁用偏向锁。
+
+#### 8.2.2 轻量级锁
+  如果偏向锁失败，Java 虚拟机会让线程申请轻量级锁。轻量级锁在虚拟机内部，使用一个称为 BasicObjectLock 的对象实现，这个对象内部由一个 BasicLock 对象和一个持有该锁的 Java 对象指针组成。BasicObjectLock 对象放置在 Java 栈的栈帧中。在 BasicLock 对象内部还维护着 displaced_header 字段，它用于备份对象头部的 Mark Word。
+
+  一个线程持有一个对象的锁时，对象头部 Mark Word：
+  ```
+  [ptr  | 00] locked
+  ```
+
+  末尾两位比特为00，整个 Mark Word 为指向 BasicLock 对象的指针。由于 BasicObjectLock 对象在线程栈中，因此该指针必然指向持有该锁的线程栈空间。当需要判断某一线程是否持有该对象锁时，也只需简单地判断对象头的指针是否在当前线程的栈地址范围内即可。同时，BasicLock 对象的 displaced_header 字段，备份了原对象的 Mark Word 内容。BasicObjectLock 对象的 obj 字段则指向该对象。
+
+  轻量级锁核心代码
+  ```
+  markOop mark = obj -> mark();
+  lock -> set_displaced_header(mark);
+  if (mark == (markOop) Atomic::cmpxchg_ptr(lock, obj() -> mark_addr(), mark)) {
+    TEVENT (slow_enter: release stacklock);
+    return ;
+  }
+  ```
+
+  首先，BasicLock 通过 set_displaced_header() 方法备份了原对象的 Mark Word。接着，使用 CAS 操作，尝试将 BasicLock 的地址复制到对象头的 Mark Word。如果复制成功，那么加锁成功，否则认为加锁失败。如果加锁失败，那么轻量级锁就有可能被膨胀为重量级锁。
