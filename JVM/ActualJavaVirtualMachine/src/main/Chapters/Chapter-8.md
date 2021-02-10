@@ -101,7 +101,7 @@
   末尾两位比特为00，整个 Mark Word 为指向 BasicLock 对象的指针。由于 BasicObjectLock 对象在线程栈中，因此该指针必然指向持有该锁的线程栈空间。当需要判断某一线程是否持有该对象锁时，也只需简单地判断对象头的指针是否在当前线程的栈地址范围内即可。同时，BasicLock 对象的 displaced_header 字段，备份了原对象的 Mark Word 内容。BasicObjectLock 对象的 obj 字段则指向该对象。
 
   轻量级锁核心代码
-  ```
+  ```java
   markOop mark = obj -> mark();
   lock -> set_displaced_header(mark);
   if (mark == (markOop) Atomic::cmpxchg_ptr(lock, obj() -> mark_addr(), mark)) {
@@ -111,3 +111,19 @@
   ```
 
   首先，BasicLock 通过 set_displaced_header() 方法备份了原对象的 Mark Word。接着，使用 CAS 操作，尝试将 BasicLock 的地址复制到对象头的 Mark Word。如果复制成功，那么加锁成功，否则认为加锁失败。如果加锁失败，那么轻量级锁就有可能被膨胀为重量级锁。
+
+#### 8.2.3 锁膨胀
+  当轻量级锁失败，虚拟机就会使用重量级锁，同时 Mark Word 为：
+  ```
+  [ptr  | 10] monitor
+  ```
+
+  末尾2比特标记位被置为10。整个 Mark Word 表示指向 monitor 对象的指针。在轻量级锁处理失败后，虚拟机会执行如下操作：
+  ```java
+  lock -> set_displaced_header(markOopDesc::unused_mark());
+  ObjectSynchronizer::inflate(THREAD, obj()) -> enter(THREAD);
+  ```
+
+  首先，废弃前面 BasicLock 备份的对象头信息。然后，正式启用重量级锁，启用过程分两步：通过`inflate()`进行锁膨胀，以获得对象的 ObjectMonitor；然后使用`enter()`方法尝试进入该锁。
+
+  在`enter()`方法调用时，线程很可能会在操作系统层面被挂起，线程间切换和调度的成本就会比较高。
