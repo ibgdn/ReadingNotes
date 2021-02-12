@@ -139,3 +139,43 @@
   JDK1.6中，Java 虚拟机提供`-XX:+UseSpinning`参数来开启自旋锁，使用`-XX:PreBlockSpin`参数来设置自旋锁的等待次数。
 
   JDK1.7中，自旋锁的参数被取消，虚拟机不再支持由用户配置自旋锁。自旋锁总是会执行，自旋次数也由虚拟机自行调整。
+
+#### 8.2.5 锁消除
+  锁消除是 Java 虚拟机在 JIT 编译时，通过对运行上下文的扫描，去除不可能存在共享资源竞争的锁。通过锁消除，可以节省毫无意义的请求锁时间。
+
+  如果不可能存在竞争，为什么程序员还要加上锁呢？在 Java 软件开发过程中，开发人员必然会使用一些 JDK 的内置 API，比如 StringBuffer、Vector 等。这些常用的工具类可能会被大面积地使用，虽然这些工具类本身可能有对应的非线程安全版本，但是开发人员也很有可能在完全没有多线程竞争的场合使用它们。
+
+  在这种情况下，工具类内部的同步方法就是不必要的。虚拟机可以在运行时，基于逃逸分析技术，捕获到这些不可能存在竞争却有申请锁的代码段，并消除这些不必要的锁，从而提高系统性能。
+
+  [变量仅作用于方法体内部](../java/com/ibgdn/chapter_8/LockEliminate.java)
+
+  输出结果：
+  ```
+  createStringBuffer: 197 ms
+  ```
+
+  逃逸分析和锁消除分别可以使用参数`-XX:+DoEscapeAnalysis`和`-XX:+EliminateLocks`开启（锁消除必须工作在`-server`模式下）。
+
+  关闭锁消除，每次`append()`操作都会进行锁的申请
+
+  VM options：
+  ```
+  -server -XX:+DoEscapeAnalysis -XX:-EliminateLocks -Xcomp -XX:-BackgroundCompilation -XX:BiasedLockingStartupDelay=0
+  ```
+
+  输出结果：
+  ```
+  createStringBuffer: 232 ms
+  ```
+
+  VM options：
+  ```
+  -server -XX:+DoEscapeAnalysis -XX:+EliminateLocks -Xcomp -XX:-BackgroundCompilation -XX:BiasedLockingStartupDelay=0
+  ```
+
+  输出结果：
+  ```
+  createStringBuffer: 218 ms
+  ```
+
+  使用锁消除后，性能有了较为明显的改善。偏向锁本身简化了锁的获取，其性能较好。本例中使用```-XX:BiasedLockingStartupDelay```参数迫使偏向锁在启动的时候就生效，即便如此，性能也不如锁消除后的代码。
