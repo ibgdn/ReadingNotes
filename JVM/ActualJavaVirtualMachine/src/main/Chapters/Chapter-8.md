@@ -179,3 +179,43 @@
   ```
 
   使用锁消除后，性能有了较为明显的改善。偏向锁本身简化了锁的获取，其性能较好。本例中使用```-XX:BiasedLockingStartupDelay```参数迫使偏向锁在启动的时候就生效，即便如此，性能也不如锁消除后的代码。
+
+### 8.3 应对残酷的竞争：锁在应用层的优化思路
+#### 8.3.1 减少锁持有时间
+  对于使用锁进行并发控制的应用程序而言，在锁竞争过程中，单个线程对锁的持有时间与系统性能有着直接的关系。如果线程持有锁的时间很长，锁的竞争也就越激烈。程序开发过程中，应该尽可能地减少对某个锁的占有时间，减少线程间的互斥几率。
+  
+  ```java
+  public synchronized void syncMethod(){
+    otherCode1();
+    mutextMethod();
+    otherCode2();
+  }
+  ```
+  `syncMethod()`方法中，如果只有`mutextMethod()`方法有同步需求，而`otherCode1()`和`otherCode2()`并不需要做同步控制。如果`otherCode1()`和`otherCode2()`都是重量级方法，则会花费较长的 CPU 时间。如果同时并发量较大，使用这种对整个方法做同步的方案，会导致等待线程大量增加。因为一个线程，在进入该方法时获得内部锁，只有在所有任务都执行完成后，才会释放锁。
+
+  较好的优化方案是，只在必要时进行同步，以减少线程持有锁的时间，提高系统的吞吐量。
+  ```java
+  public void syncMethod2(){
+        otherCode1();
+        synchronized (this) {
+            mutextMethod();
+        }
+        otherCode2();
+  }
+  ```
+  改进的代码中，只对`mutextMethod()`方法做了同步，锁占用时间相对较短，可以提高并行度。JDK 源码中常有类似代码，比如正则表达式的 Pattern 类：
+  ```java
+  public Mather matcher(CharSequence input) {
+        if (!compiled) {
+            synchronized (this) {
+                if (!compiled) {
+                    compile();
+                }
+            }
+        }
+        Matcher matcher = new Matcher(this, input);
+        return matcher;
+  }
+  ```
+
+  注意：**减少锁的持有时间，有助于降低锁冲突的可能性，进而提升系统的并发能力**
