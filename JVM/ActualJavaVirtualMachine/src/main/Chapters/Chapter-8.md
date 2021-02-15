@@ -219,3 +219,33 @@
   ```
 
   注意：**减少锁的持有时间，有助于降低锁冲突的可能性，进而提升系统的并发能力**
+
+#### 8.3.2 减少锁的粒度
+  减少锁的粒度也是一种削弱多线程锁竞争的有效手段。这种技术典型的使用场景是 ConcurrentHashMap 类的实现。普通集合对象的多线程同步，最常用的方式就是对`get()`和`add()`方法进行同步，每当对集合进行 get 或 add 操作时，总是获得集合对象的锁。因此，事实上没有两个线程可以做到真正的并发，任何线程在执行这些同步方法时，总要等待前一个线程执行完毕。在高并发时，激烈的锁竞争会影响系统的吞吐量。
+
+  ConcurrentHashMap 将整个 HashMap 分成若干个段（Segment），每个段都是一个子 HashMap。如果需要在 ConcurrentHashMap 中增加一个新的表项，并不是将整个 HashMap 加锁，而是首先根据 hashcode 得到该表项应该被存放到的段（Segment）中，然后对该段加锁，并完成 put 操作。在多线程环境中，如果多个线程同时进行 put 操作，只要被加入的表项不存放在同一个段中，则线程间便可以做到真正的并行。
+
+  默认情况下，ConcurrentHashMap 拥有16个段，如果幸运的话，ConcurrentHashMap 可以同时接受16个线程同时插入（同时插入不同段的情况），大大提高吞吐量。如下图所示6个线程同时对 ConcurrentHashMap 进行访问，线程1、2、3分别访问受独立锁保护的段1、2、3，而线程4、5、6也需要访问段1、2、3，则必须等待前面的线程结束访问才能进入 ConcurrentHashMap。
+  ```mermaid
+  graph LR
+  a[Thread4  Thread1] --> d[segment1]
+  b[Thread5  Thread2] --> e[segment2]
+  c[Thread6  Thread3] --> f[segment3]
+  ```
+
+  减少粒度会引入一个新问题：当系统需要取得全局锁时，消耗的资源会比较多。仍然以 ConcurrentHashMap 类为例，虽然`put()`方法很好地分离了锁，当试图访问 ConcurrentHashMap 全局信息时，就会需要同时取得所有段的锁方能顺利实施。比如 ConcurrentHashMap 的`size()`方法，返回 ConcurrentHashMap 的有效表项数量之和。要获取这个信息，需要取得所有子段的锁，`size()`方法部分代码如下：
+  ```java
+  sum = 0;
+  // 对所有的段加锁
+  for (int i = 0; i < segments.length; ++i)
+      segments[i].lock();
+  // 统计总数
+  for (int i = 0; i < segments.length; ++i)
+      sum += segments[i].count;
+  // 释放所有的锁
+  for (int i = 0; i < segments.length; ++i)
+      segments[i].unlock();
+  ```
+  计算所有有效表的数量，要先获得所有段的锁，然后再求和。ConcurrentHashMap 的`size()`方法并不总是这样执行。事实上，`size()`方法会先使用无锁的方式求和，如果失败才会尝试使用加锁的方法。在高并发场景下，ConcurrentHashMap 的`size()`方法的性能依然要差于同步的 HashMap。
+
+  注意：**所谓减少锁粒度，就是指缩小锁定对象的范围，从而减少锁冲突的可能性，进而提高系统的并发能力**
