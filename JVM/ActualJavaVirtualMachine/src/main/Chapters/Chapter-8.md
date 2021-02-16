@@ -249,3 +249,96 @@
   计算所有有效表的数量，要先获得所有段的锁，然后再求和。ConcurrentHashMap 的`size()`方法并不总是这样执行。事实上，`size()`方法会先使用无锁的方式求和，如果失败才会尝试使用加锁的方法。在高并发场景下，ConcurrentHashMap 的`size()`方法的性能依然要差于同步的 HashMap。
 
   注意：**所谓减少锁粒度，就是指缩小锁定对象的范围，从而减少锁冲突的可能性，进而提高系统的并发能力**
+
+#### 8.3.3 锁分离
+  锁分离是减小锁粒度的一个特例，依据应用程序的功能特点，将一个独占锁分成多个锁。
+
+  锁分离的典型示例是`java.util.concurrent.LinkedBlockingQueue`的实现。`take()`和`put()`方法分别实现了从队列中取得数据和往队列中增加数据的功能。LinkedBlockingQueue 是基于链表的数据结构，两个方法的操作分别作用于队列的前端（take）和尾部（put），理论上两者并不冲突。
+
+  如果使用独占锁，则需要在两个操作进行时，获取当前队列的独占锁，`take()`和`put()`方法就不可能真正并发进行，运行时需要彼此等待对方释放锁资源，锁竞争会比较激烈，从而影响程序在高并发时的性能。
+
+  JDK 中的加了两把不同的锁
+  ```java
+    /** Lock held by take, poll, etc */
+    // take() 方法需要持有 takeLock
+    private final ReentrantLock takeLock = new ReentrantLock();
+  
+    /** Wait queue for waiting takes */
+    private final Condition notEmpty = takeLock.newCondition();
+  
+    /** Lock held by put, offer, etc */
+    // put() 方法需要持有 putLock
+    private final ReentrantLock putLock = new ReentrantLock();
+
+    /** Wait queue for waiting puts */
+    private final Condition notFull = putLock.newCondition();
+  ```
+  以上代码段定义了 takeLock 和 putLock，分别在`take()`和`put()`方法操作中使用，两个方法就相互独立，不会存在竞争关系。存在的竞争只是同名方法`take()`和`take()`的竞争。
+
+  `take()`方法实现如下：
+  ```java
+    public E take() throws InterruptedException {
+        E x;
+        int c = -1;
+        final AtomicInteger count = this.count;
+        final ReentrantLock takeLock = this.takeLock;
+        // 不能有两个线程同时取数据
+        takeLock.lockInterruptibly();
+        try {
+            // 如果当前没有可用数据，就会一直等待
+            while (count.get() == 0) {
+                // 等待，put() 操作的通知
+                notEmpty.await();
+            }
+            // 取得第一个数据
+            x = dequeue();
+            // 数量减1，原子操作，因为会和 put() 方法同时访问 count。
+            // 注意：变量 c 是 count 减 1 的值
+            c = count.getAndDecrement();
+            if (c > 1)
+                // 通知其他 take() 方法操作
+                notEmpty.signal();
+        } finally {
+            // 释放锁
+            takeLock.unlock();
+        }
+        if (c == capacity)
+            // 通知 put() 方法，已有空余空间
+            signalNotFull();
+        return x;
+    }
+  ```
+
+  `put()`方法实现如下
+  ```java
+    public void put(E e) throws InterruptedException {
+        if (e == null) throw new NullPointerException();
+        int c = -1;
+        Node<E> node = new Node<E>(e);
+        final ReentrantLock putLock = this.putLock;
+        final AtomicInteger count = this.count;
+        // 不能有两个线程同时存数据
+        putLock.lockInterruptibly();
+        try {
+            // 如果队列已满
+            while (count.get() == capacity) {
+                // 等待
+                notFull.await();
+            }
+            // 将数据放入最后一项
+            enqueue(node);
+            // 更新总数，变量 c 是 count 加1前的值
+            c = count.getAndIncrement();
+            if (c + 1 < capacity)
+                // 有足够的空间，通知其他线程
+                notFull.signal();
+        } finally {
+            // 释放锁
+            putLock.unlock();
+        }
+        if (c == 0)
+            // 插入成功后，通知 take() 方法取数据
+            signalNotEmpty();
+    }
+  ```
+  通过 takeLock 和 putLock 两把锁，LinkedBlockingQueue 实现了取数据和写数据的分离，使两者真正意义上成为可并发的操作。
