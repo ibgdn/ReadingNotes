@@ -410,3 +410,49 @@
         // do something.
     }
   ```
+
+#### 8.4.2 原子操作
+  为了能让 CAS 操作被 Java 应用程序充分使用，在 JDK 的`java.util.concurrent.atomic`包下，有一组使用无锁算法实现的原子操作类，主要有 AtomicInteger、AtomicIntegerArray、AtomicLong、AtomicLongArray 和 AtomicReference 等。它们分别封装了对整数、整数数组、长整型、长整型数组和普通对象的多线程安全操作。
+
+  以 AtomicInteger 为例.它的核心方法有：
+  ```java
+    // 取得当前值
+    public final int get();
+    // 设置当前值
+    public final void set(int newValue);
+    // 设置新值，并返回旧值
+    public final int getAndSet(int newValue);
+    // 如果当前值为 expect，则设置为 u
+    public final boolean compareAndSet(int expect, int u);
+    // 当前值加1，返回旧值
+    public final int getAndIncrement();
+    // 当前值减1，返回旧值
+    public final int getAndDecrement();
+    // 当前值加 delta，返回旧值
+    public final int getAndAdd(int delta);
+    // 当前值加1，返回新值
+    public final int incrementAndGet();
+    // 当前值减1，返回新值
+    public final int decrementAndGet();
+    // 当前值加 delta，返回新值
+    public final int addAndGet(int delta);
+  ```
+
+  以`getAndSet()`方法为例，看一下 CAS 算法是如何工作的：
+  ```java
+    public final int getAndSet (int newValue) {
+        for (;;) {
+            int current = get();
+            if (compareAndSet(current, newValue)){
+                return current;
+            }
+        }
+    }
+  ```
+  在 CAS 算法中，首先是一个无穷循环，在这里，这个无穷循环用于多线程间的冲突处理，即在当前线程受其他线程影响而更新失败时，会不停地尝试，直到成功。
+
+  方法`get()`用于取得当前值，并使用`compareAndSet()`方法进行更新，如果未受其他线程影响，则预期值就等于 current。因此，可以将值更新为 newValue，若更新成功，则退出循环。
+  
+  如果受其他线程影响，则在`compareAndSet()`方法执行时，预期值就不等于 current ，更新失败，则进行下一次循环，尝试继续更新，直到成功。
+
+  因此，在整个更新过程中，无需加锁，无需等待。从这段代码中也可以看到，无锁的操作实际上将多线程并发的冲突处理交由应用层自行解决，这不仅提升了系统性能，还增加了系统的灵活性。但相对的，算法及编码的复杂度也明显地增加了。
