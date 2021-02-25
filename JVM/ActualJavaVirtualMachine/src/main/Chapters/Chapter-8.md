@@ -540,3 +540,19 @@
     }
   ```
   当使用 synchronized 后，由于同步，可以解决这种语义上的冲突。即使线程 A 进行了指令重排，但在`writer()`方法执行时，线程 B 无法进入，只有线程 A 释放锁，线程 B 才能得以进入。无论线程 A 的指令执行顺序如何，线程 B 都会看到相同的最终结果。
+
+#### 8.5.3 可见性
+  可见性是指当一个线程修改了一个变量的值，在另外一个线程中可以马上得知这个修改。指令重排就有可能使得一个线程可能无法立即得知一个变量的修改。此外，由于系统编译器优化，部分变量的值可能会被寄存器或者高速缓冲（Cache）缓存，而每个 CPU 都拥有独立的寄存器和 Cache，从而导致其他线程无法立即发现这个修改。
+
+  [多线程间的可行性问题](../java/com/ibgdn/chapter_8/VolatitleTest.java)
+  上述代码开启两个线程，主线程和 MyThread 线程，在主线程中使用`stopMe()`方法修改 stop 变量通知 MyThread 线程结束。使用`-server`参数执行这段代码（由于 server虚拟机会做足够多的优化，可将多线程的可见性问题表现得更明显），结果发现 MyThread 始终无法结束。这就是由于在主线程中对 stop 变量的修改无法反应到 MyThread 线程中去。
+
+  解决可见性问题最简单的方法是将代码修改为（增加 volatile 关键字）：
+  ```java
+        private volatile boolean stop = false;
+  ```
+  在使用 volatile 之后，再次使用`-server`参数执行这段代码，MyThread 线程就可以及时发现 stop 变量的变化，将线程退出。
+
+  除了 volatile 外，使用 synchronized 关键字也可以解决可见性问题。如下代码改写了 MyThread 线程，使用 synchronized 关键字解决线程间可见性问题。
+  [多线程间的可行性问题](../java/com/ibgdn/chapter_8/SynchronizedTest.java)
+  在使用同步方法后，MyThread 也可以正常接收到停止命令，将线程退出。由此，可以看到 **synchronized 关键字不仅可以用于线程同步控制，还可以用于解决可见性问题**。
