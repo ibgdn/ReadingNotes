@@ -65,3 +65,29 @@
   ```java
         Exception in thread "main" java.lang.UnsupportedClassVersionError: hsdb/Main: Unsupported major.minor version 52.0
   ```
+
+#### 9.2.3 存放所有常量——常量池
+  常量池是 Class 文件中内容最为丰富的区域之一。随着 Java 虚拟机的不断发展，常量池的内容也日渐丰富。同时，常量池对于 Class 文件中的字段和方法解析也有着至关重要的作用，可以说，常量池是整个 Class 文件的基石。在版本号之后，紧跟着的是常量池的数量，以及若干个常量池表项。
+
+  `0x37`表示该 Class 文件中合计有常量池表项`55 - 1 = 54`项（常量池0为空缺项，不存放实际内容，`0x37`换算了10进制为55）。在数量之后，就是常量池的实际内容，每一项以类型、长度、内容或者类型、内容的格式存放依次排列。
+
+  常量池可能出现的内容，其中 TAG 表示该常量的整数枚举值。
+  常量池类型|TAG|常量池类型|TAG
+  :--|:--:|:--|:--:
+  CONSTANT_Utf8 |1 |CONSTANT_Fieldref |9
+  CONSTANT_Integer |3 |CONSTANT_Methodref |10
+  CONSTANT_Float |4 |CONSTANT_InterfaceMethodref |11
+  CONSTANT_Long |5 |CONSTANT_NameAndType |12
+  CONSTANT_Double |6 |CONSTANT_MethodHandle |15
+  CONSTANT_Class |7 |CONSTANT_MethodType |16
+  CONSTANT_String |8 |CONSTANT_InvokeDynamic |18
+
+  作为常量池底层的数据类型 CONSTANT_Utf8、CONSTANT_Integer、CONSTANT_Float、CONSTANT_Long、CONSTANT_Double 分别表示 UTF8 字符串、整数、浮点数、长整型和双精度浮点常量。
+  CONSTANT_Utf8 的格式如下定义，UTF8的 tag 值为1，字符串长度是 length，最后是字符串的内容：
+  ```java
+    CONSTANT_Utf8_info {
+        u1 tag;
+        u2 length;
+        u1 bytes[length];
+    }
+  ```
