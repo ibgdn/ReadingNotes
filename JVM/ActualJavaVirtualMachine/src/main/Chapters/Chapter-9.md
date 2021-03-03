@@ -91,3 +91,15 @@
         u1 bytes[length];
     }
   ```
+  ```
+  01 00 04 54 59 50 45
+  ```
+  `0x01`表示为一个UTF8的常量，接着`0x0004`表示该常量一共4个字节。因此，从`0x0004`之后数4个字节就为该常量的实际变量名`TYPE`。
+
+  UTF8的常量经常被其他类型的常量引用，比如在本例中，CONSTANT_Class 常量就会引用该UTF8作为类名。其结构如下，tag 为7，表示 CONSTANT_Class 常量，第2个字段是一个两字节的整数，表示常量池索引，在 CONSTANT_Class 中，该索引指向的常量必须是 CONSTANT_Utf8：
+  ```java
+    CONSTANT_Class_info {
+        u1 tag;
+        u2 name_index;
+    }
+  ```
