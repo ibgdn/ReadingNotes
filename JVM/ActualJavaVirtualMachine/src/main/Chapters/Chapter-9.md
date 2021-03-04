@@ -92,7 +92,7 @@
     }
   ```
   ```
-  01 00 04 54 59 50 45
+    01 00 04 54 59 50 45
   ```
   `0x01`表示为一个UTF8的常量，接着`0x0004`表示该常量一共4个字节。因此，从`0x0004`之后数4个字节就为该常量的实际变量名`TYPE`。
 
@@ -103,3 +103,36 @@
         u2 name_index;
     }
   ```
+
+  ```
+    07 00 02 54 59 50 45
+  ```
+  `0x07`表示该常量为 CONSTANT_Class，`0x02`表示该类的类名由常量池第2个常量字符串指定。
+
+  CONSTANT_Integer、CONSTANT_Float、CONSTANT_Long、CONSTANT_Double 分别表示数字的字面量。当使用 final 定义一个数字常量时，Class 文件中就会生成一个数字的常量。它们的结构分别为：
+  ```java
+    CONSTANT_Integer_info{
+        u1 tag;
+        u4 bytes;
+    }
+    CONSTANT_Float_info{
+        u1 tag;
+        u4 bytes;
+    }
+    CONSTANT_Long_info{
+        u1 tag;
+        u4 high_bytes;
+        u4 low_bytes;
+    }
+    CONSTANT_Double_info{
+        u1 tag;
+        u4 high_bytes;
+        u4 low_bytes;
+    }
+  ```
+  其中，tag 的值保持不变。对于 CONSTANT_Integer、CONSTANT_Float，它们的值由一个4字节的无符号整数表示，对于 CONSTANT_Long、CONSTANT_Double，它们的值由两个4字节无符号整数表示。这里以 CONSTANT_Integer 为例说明这些常量的表示方式。
+
+  ```
+    03 00 00 00 01
+  ```
+  `0x03`表示一个整数常量，紧接着的`00 00 00 01`表示数字1 。
