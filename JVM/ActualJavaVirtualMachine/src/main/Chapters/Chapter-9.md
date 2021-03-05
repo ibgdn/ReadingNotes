@@ -110,7 +110,7 @@
   `0x07`表示该常量为 CONSTANT_Class，`0x02`表示该类的类名由常量池第2个常量字符串指定。
 
   CONSTANT_Integer、CONSTANT_Float、CONSTANT_Long、CONSTANT_Double 分别表示数字的字面量。当使用 final 定义一个数字常量时，Class 文件中就会生成一个数字的常量。它们的结构分别为：
-  ```java
+  ```
     CONSTANT_Integer_info{
         u1 tag;
         u4 bytes;
@@ -136,3 +136,53 @@
     03 00 00 00 01
   ```
   `0x03`表示一个整数常量，紧接着的`00 00 00 01`表示数字1 。
+
+  另外一个值得注意的字面量是 CONSTANT_String，它表示一个字符串常量，结构如下：
+  ```
+    CONSTANT_String_info {
+        u1 tag;
+        u2 string_index;
+    }
+  ```
+  其中 tag 为8， 一个2字节长的无符号整数指向常量池的索引，表示该字符串对应的UTF8内容。
+
+  另一个被广泛使用的类型为 CONSTANT_NameAndType，从名字上可以看出，它表示一个名词和类型，格式如下：
+  ```
+    CONSTANT_NameAndType_info {
+        u1 tag;
+        u2 name_index;
+        u2 descriptor_index;
+    }
+  ```
+  其中，tag 为12，第一个2字节 name_index 表示名称，意为常量池的索引，表示常量池第 name_index 项为名字，通常可以表示字段名字或者方法名字。第二个2字节 descriptor_index 表示类型的描述，比如表示方法的签名或者字段的类型。
+
+  ```
+    0C 00 09 00 06
+  ```
+  `0x0C`表示一个 CONSTANT_NameAndType，`0x0009`表示第9项常量为名称，査常量池，可得第9项常量为 id 字符串。`0x0006`表示第6项常量，査常量表得到字符串 I，表示 int 类型。因此，该 CONSTANT_NameAndType 表示一个名称为 id，类型为 int 的表项。
+
+  CONSTANT_NameAndType 的 descriptor_index 使用了一组特定的字符串来表示类型，如表所示。
+  字符串 |类型 |字符串  |类型
+  :--|:--:|:--|:--:
+  B |byte |C  |char
+  D |double |F  |float
+  I |int  |J  |long
+  S |short  |Z  |boolean
+  V |void |L; |表示对象
+  [ |数组 ||
+  对于对象类型来说，总是以 L 开头，紧跟类的全限定名，用分号（；）结尾，比如以字符串"Ljava/lang/Object;"表示类`java.lang.Object`。数组则以左中括号“[”作为标记，比如 String 二维数组，使用“[[Ljava/lang/String;”字符串表示。
+
+  对于类的方法和字段，则分别使用 CONSTANT_Methodref 和 CONSTANT_Fieldref 表示。它们分别可以表示一个类的方法以及字段的引用。CONSTANT_Methodref 和 CONSTANT_Fieldref 的结构是非常类似的，如下所示：
+  ```
+    CONSTANT_Methodref_info {
+        u1 tag;
+        u2 class_index;
+        u2 name_and_type_index;
+    }
+    CONSTANT_Fieldref_info {
+        u1 tag;
+        u2 class_index;
+        u2 name_and_type_index;
+    }
+  ```
+  其中 CONSTANT_Methodref 的 tag 值为10，CONSTANT_Fieldref 的 tag 值为9。它们的 class_index 表示方法或者字段所在的类在常量池中的索引，它会指向一个 CONSTANT_Class 结构。第2项 name_and_type_index 也是指向常量池的索引，但表示一个 CONSTANT_NameAndType 结构，它定义了方法或者字段的名称、类型或者签名。
