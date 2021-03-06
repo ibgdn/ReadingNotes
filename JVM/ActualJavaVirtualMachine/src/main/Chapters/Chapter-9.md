@@ -186,3 +186,11 @@
     }
   ```
   其中 CONSTANT_Methodref 的 tag 值为10，CONSTANT_Fieldref 的 tag 值为9。它们的 class_index 表示方法或者字段所在的类在常量池中的索引，它会指向一个 CONSTANT_Class 结构。第2项 name_and_type_index 也是指向常量池的索引，但表示一个 CONSTANT_NameAndType 结构，它定义了方法或者字段的名称、类型或者签名。
+
+  使用的`System.out.println()`方法所表示的 CONSTANT_Methodref 在常量池中的引用关系。可以看到，Methodref 结构的 class_index 字段指向了第41号常量池项，表示 Class，而该项又进一步指向常量池中的UTF8数据，表明该 Class 的类型。而 Methodref 的 name_and_ref 字段则指向常量池第43项，NameAndType 类型的数据，它包括名字和类型两个字段，又分别指向常量池中的两个字符串 println 和 (Ljava/lang/String;)V，表示方法的名字和方法的签名。(Ljava/lang/String;)V 表示该方法接收一个 String 类型的参数，并且返回值为 void。就这样，通过常量池中的引用关系.通过 Methodref 结构，将方法描述清楚了。
+  ```mermaid
+    graph LR
+    a[Methodref class_index name_and_type_index] --> b[Class#41 name_index] --> c[UTF8 java/io/PrintStream]
+    a --> d[NameAndType#43 name_index descriptor_index] --> e[UTF8 println]
+    d --> f[UTF8 Ljava/lang/String V]
+  ```
