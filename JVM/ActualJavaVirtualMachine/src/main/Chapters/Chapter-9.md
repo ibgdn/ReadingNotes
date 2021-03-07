@@ -261,3 +261,22 @@
     }
   ```
   其中，tag 为18，bootstrap_method_attr_index 为指向引导方法表中的索引，即定位到一个引导方法。引导方法用于在动态调用时进行运行时函数查找和绑定。引导方法表属于类文件的属性（Attribute），name_and_type_index 为指向常量池的索引，且指向的表项必须是 CONSTANT_NameAndType，用于表示方法的名字以及签名。
+
+#### 9.2.4 Class 的访问标记（Access Flag）
+  在常量池后，紧跟着访问标记。该标记使用两个字节表示，用于表明该类的访问信息，如 public、final、abstract 等。
+
+  每一种类型的表示都是通过设置访问标记的32位中的特定位来实现的。比如，若是 public final 的类，则该标记为 ACC_PUBLIC | ACC_FINAL。
+  
+  类 Access Flag 标记位和含义
+  标记名称  |数值 |描述
+  :--|:--:|:--
+  ACC_PUBLIC  |0x0001 |表示 public 类（public 类可以在包外访问）
+  ACC_FINAL |0x0010 |是否为 final 类（final 类不可被继承）
+  ACC_SUPER |0x0020 |使用增强的方法调用父类方法
+  ACC_INTERFACE |0x0200 |是否为接口
+  ACC_ABSTRACT  |0x0400 |是否是抽象类
+  ACC_SYNTHETIC |0x1000 |由编译器产生的类，没有源码对应
+  ACC_ANNOTATION  |0x2000 |是否是注释
+  ACC_ENUM  |0x4000 |是否是枚举
+
+  标记位为`0x0021`，因此，可以判断该类为 public，且 ACC_SUPER 标记被置为1。
