@@ -86,9 +86,9 @@
   CONSTANT_Utf8 的格式如下定义，UTF8的 tag 值为1，字符串长度是 length，最后是字符串的内容：
   ```java
     CONSTANT_Utf8_info {
-        u1 tag;
-        u2 length;
-        u1 bytes[length];
+        u1  tag;
+        u2  length;
+        u1  bytes[length];
     }
   ```
   ```
@@ -99,8 +99,8 @@
   UTF8的常量经常被其他类型的常量引用，比如在本例中，CONSTANT_Class 常量就会引用该UTF8作为类名。其结构如下，tag 为7，表示 CONSTANT_Class 常量，第2个字段是一个两字节的整数，表示常量池索引，在 CONSTANT_Class 中，该索引指向的常量必须是 CONSTANT_Utf8：
   ```java
     CONSTANT_Class_info {
-        u1 tag;
-        u2 name_index;
+        u1  tag;
+        u2  name_index;
     }
   ```
 
@@ -112,22 +112,22 @@
   CONSTANT_Integer、CONSTANT_Float、CONSTANT_Long、CONSTANT_Double 分别表示数字的字面量。当使用 final 定义一个数字常量时，Class 文件中就会生成一个数字的常量。它们的结构分别为：
   ```
     CONSTANT_Integer_info{
-        u1 tag;
-        u4 bytes;
+        u1  tag;
+        u4  bytes;
     }
     CONSTANT_Float_info{
-        u1 tag;
-        u4 bytes;
+        u1  tag;
+        u4  bytes;
     }
     CONSTANT_Long_info{
-        u1 tag;
-        u4 high_bytes;
-        u4 low_bytes;
+        u1  tag;
+        u4  high_bytes;
+        u4  low_bytes;
     }
     CONSTANT_Double_info{
-        u1 tag;
-        u4 high_bytes;
-        u4 low_bytes;
+        u1  tag;
+        u4  high_bytes;
+        u4  low_bytes;
     }
   ```
   其中，tag 的值保持不变。对于 CONSTANT_Integer、CONSTANT_Float，它们的值由一个4字节的无符号整数表示，对于 CONSTANT_Long、CONSTANT_Double，它们的值由两个4字节无符号整数表示。这里以 CONSTANT_Integer 为例说明这些常量的表示方式。
@@ -140,8 +140,8 @@
   另外一个值得注意的字面量是 CONSTANT_String，它表示一个字符串常量，结构如下：
   ```
     CONSTANT_String_info {
-        u1 tag;
-        u2 string_index;
+        u1  tag;
+        u2  string_index;
     }
   ```
   其中 tag 为8， 一个2字节长的无符号整数指向常量池的索引，表示该字符串对应的UTF8内容。
@@ -149,9 +149,9 @@
   另一个被广泛使用的类型为 CONSTANT_NameAndType，从名字上可以看出，它表示一个名词和类型，格式如下：
   ```
     CONSTANT_NameAndType_info {
-        u1 tag;
-        u2 name_index;
-        u2 descriptor_index;
+        u1  tag;
+        u2  name_index;
+        u2  descriptor_index;
     }
   ```
   其中，tag 为12，第一个2字节 name_index 表示名称，意为常量池的索引，表示常量池第 name_index 项为名字，通常可以表示字段名字或者方法名字。第二个2字节 descriptor_index 表示类型的描述，比如表示方法的签名或者字段的类型。
@@ -175,14 +175,14 @@
   对于类的方法和字段，则分别使用 CONSTANT_Methodref 和 CONSTANT_Fieldref 表示。它们分别可以表示一个类的方法以及字段的引用。CONSTANT_Methodref 和 CONSTANT_Fieldref 的结构是非常类似的，如下所示：
   ```
     CONSTANT_Methodref_info {
-        u1 tag;
-        u2 class_index;
-        u2 name_and_type_index;
+        u1  tag;
+        u2  class_index;
+        u2  name_and_type_index;
     }
     CONSTANT_Fieldref_info {
-        u1 tag;
-        u2 class_index;
-        u2 name_and_type_index;
+        u1  tag;
+        u2  class_index;
+        u2  name_and_type_index;
     }
   ```
   其中 CONSTANT_Methodref 的 tag 值为10，CONSTANT_Fieldref 的 tag 值为9。它们的 class_index 表示方法或者字段所在的类在常量池中的索引，它会指向一个 CONSTANT_Class 结构。第2项 name_and_type_index 也是指向常量池的索引，但表示一个 CONSTANT_NameAndType 结构，它定义了方法或者字段的名称、类型或者签名。
@@ -194,3 +194,70 @@
     a --> d[NameAndType#43 name_index descriptor_index] --> e[UTF8 println]
     d --> f[UTF8 Ljava/lang/String V]
   ```
+
+  对于 CONSTANT_InterfaceMethodref，它用于表示一个接口的方法。如果在 Java 程序中，出现了对接口方法的调用，那么就会在常量池中生成一个接口方法的引用。该项目的结构如下：
+  ```
+    CONSTANT_MethodType_info {
+      u1  tag;
+      u2  descriptor_index;
+    }
+  ```
+  其中 tag 为16，descriptor_index 为指向常量池的一个UTF8字符串的索引，使用手法和前面介绍的索引如出一辙。该常量项用于描述一个方法签名，比如“()V”，表示一个不接收参数，返回值为 void 的方法。当需要传送给引导方法一个 MethodType 类型时，类文件中就会出现此项。（有关引导方法和该类型具体使用案例，可参见第11章）
+
+  CONSTANT_MethodHandle 为一个方法句柄，它可以用来表示函数方法、类的字段或者构造函数等。方法句柄指向一个方法、字段，和 C 语言中的函数指针或者 C# 中的委托有些类似。
+  它的结构如下：
+  ```
+    CONSTANT_MethodHandle_info {
+      u1  tag;
+      u1  reference_kind;
+      u2  reference_index;
+    }
+  ```
+  其中，tag 值为15，reference_kind 表示这个方法句柄的类型，reference_index 为指向常量池的索引，reference_index 具体指向的类型，由 reference_kind 确定。两者对应关系参见表。
+  REF_get|
+  <table>
+  	<tr>
+		<th>reference_kind 取值</th>
+		<th>reference_index 对应类型</th>
+	</tr>
+	<tr>
+		<td>REF_getField(1)</td>
+		<td rowspan="5">常量池的指向内容必须是 CONSTANT_Fieldref 类型</td>
+	<tr>
+	<tr>
+		<td>REF_getStatic(2)</td>
+	</tr>
+	<tr>
+		<td>REF_putField(3)</td>
+	</tr>
+	<tr>
+		<td>REF_putStatic(4)</td>
+	</tr>
+	<tr>
+		<td>REF_invokeVirtual(5)</td>
+        <td rowspan="4">常量池指针必须是 CONSTANT_Methodref 类型，对于 REF_invokeInterface 来说为 InterfaceMethodref 类型，且不能为 init 或者 clinit 方法（即不能为类的构造函数或者初始化方法）</td>
+	</tr>
+	<tr>
+		<td>REF_invokeStatic(6)</td>
+	</tr>
+	<tr>
+		<td>REF_invokeSpecial(7)</td>
+	</tr>
+	<tr>
+		<td>REF_invokeInterface(9)</td>
+	</tr>
+	<tr>
+		<td>REF_newInvokeSpecial(8)</td>
+        <td>常量池指针必须是 CONSTANT_Methodref 类型，且对应的方法必须为 init </td>
+	</tr>
+  </table>
+
+  CONSTANT_InvokeDynamic 结构用于描述一个动态调用，动态调用是 Java 虚拟机平台引入的，专门为动态语言提供函数动态调用绑定支持的功能。相关结构信息，如下所示：
+  ```
+    CONSTANT_InvokeDynamic_info {
+      u1  tag;
+      u2  bootstrap_method_attr_index;
+      u2  name_and_type_index;
+    }
+  ```
+  其中，tag 为18，bootstrap_method_attr_index 为指向引导方法表中的索引，即定位到一个引导方法。引导方法用于在动态调用时进行运行时函数查找和绑定。引导方法表属于类文件的属性（Attribute），name_and_type_index 为指向常量池的索引，且指向的表项必须是 CONSTANT_NameAndType，用于表示方法的名字以及签名。
