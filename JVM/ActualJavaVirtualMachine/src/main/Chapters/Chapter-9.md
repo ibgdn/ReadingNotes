@@ -280,3 +280,17 @@
   ACC_ENUM  |0x4000 |是否是枚举
 
   标记位为`0x0021`，因此，可以判断该类为 public，且 ACC_SUPER 标记被置为1。
+
+#### 9.2.5 当前类、父类和接口
+  在访问标记后，会指定该类的类别、父类类别以及实现的接口，格式如下：
+  ```
+    u2  this_class;
+    u2  super_class;
+    u2  interfaces_count;
+    u2  interfaces[interfaces_count];
+  ```
+  其中，this_class、super_class 都是2字节无符号整数，它们指向常量池中一个 CONSTANT_Class，以表示当前的类型以及父类。由于在 Java 中只能使用单继承，因此，只需要保存单个父类即可。
+
+  注意：**super_class 指向的父类不能是 final**。 
+
+  由于一个类可以实现多个接口，因此需要以数组形式保存多个接口的索引，表示接口的每个索引也是一个指向常量池的 CONSTANT_Class（当然这里就必须是接口，而不是类）。如果该类没有实现任何接口，则 interface_count 为0。 
