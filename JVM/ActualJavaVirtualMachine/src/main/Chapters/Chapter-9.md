@@ -294,3 +294,21 @@
   注意：**super_class 指向的父类不能是 final**。 
 
   由于一个类可以实现多个接口，因此需要以数组形式保存多个接口的索引，表示接口的每个索引也是一个指向常量池的 CONSTANT_Class（当然这里就必须是接口，而不是类）。如果该类没有实现任何接口，则 interface_count 为0。 
+
+#### 9.2.6 Class 文件的字段
+  在接口描述后，就会有类的字段信息。由于一个类会有多个字段.因此，需要首先指明字段的个数：
+  ```
+    u2          fields_count;
+    field_info  fields[fields_count];
+  ```
+
+  字段的数量 fields_count 是一个2字节无符号整数。字段数量之后为字段的具体信息，每一个字段为一个 field_info 的结构，该结构如下：
+  ```
+    field_info {
+      u2              access_flags;
+      u2              name_index;
+      u2              descriptor_index;
+      u2              attributes_count;
+      attribute_info  attributes[attributes_count];
+    }
+  ```
