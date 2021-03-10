@@ -312,3 +312,17 @@
       attribute_info  attributes[attributes_count];
     }
   ```
+
+  1. 首先是字段的访问标记，非常类似于类的访问标记，该字段的取值参见表
+  字段 Access Flag 标记位和含义
+  标记名称  |数值 |描述
+  :--|:--:|:--
+  ACC_PUBLIC  |0x0001 |表示 public 字段
+  ACC_PRIVATE |0x0002 |表示 private 私有字段
+  ACC_PROTECTED |0x0004 |表示 protected 保护字段
+  ACC_STATIC  |0x0008 |表示静态字段
+  ACC_FINAL |0x0010 |是否为 final 字段（final 字段表示常量）
+  ACC_VOLATILE  |0x0040 |是否为 volatile
+  ACC_TRANSIENT |0x0080 |是否为瞬时字段，表示在持久化读写时，忽略该字段
+  ACC_SYNTHETIC |0x1000 |由编译器产生的方法，没有源码对应
+  ACC_ENUM  |0x4000 |是否是枚举
