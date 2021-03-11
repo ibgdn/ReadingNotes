@@ -326,3 +326,33 @@
   ACC_TRANSIENT |0x0080 |是否为瞬时字段，表示在持久化读写时，忽略该字段
   ACC_SYNTHETIC |0x1000 |由编译器产生的方法，没有源码对应
   ACC_ENUM  |0x4000 |是否是枚举
+
+  2. 紧接着，是一个2字节整数，表示字段的名称，它指向常量池中的 CONSTANT_Utf8 结构。
+
+  3. 名称后的 descriptor_index 也指向常量池中 CONSTANT_Utf8，该字符用于描述字段的类型。
+
+  4. 一个字段还可能拥有一些属性，用于存储更多的额外信息，比如初始化值、一些注释信息等。属性个数存放在 attributes_count 中，属性具体内容存放于 attributes 数组。
+     
+     以常量属性为例，常量属性的结构为：
+  ```
+    ConstantValue_attribute {
+      u2  attribute_name_index;
+      u4  attribute_length;
+      u2  constantvalue_index;
+    }
+  ```
+  常量属性的 attribute_name_index 为2字节整数，指向常量池的 CONSTANT_Utf8，并且这个字符串为“ConstantValue”。接着，为 attribute_length，它由4个字节组成，表示这个属性的剩余长度为多少。对常量属性而言，这个值恒为2。最后的 constantvalue_index 表示属性值，但值并不直接出现在属性中，而是存放在常量池中，这里的 constantvalue_index 也是指向常量池的索引。这表示，一个 int 类型字段的常量，constantvalue_index 指向的常量池类型必须是 CONSTANT_Integer。
+
+  常量数据类型和常量池类型对应关系
+  字段类型  |常量池表项类型
+  :--|:--
+  long  |CONSTANT_Long
+  float |CONSTANT_Float
+  double  |CONSTANT_Double
+  int,short,char,byte,boolean |CONSTANT_Integer
+  String  |CONSTANT_String
+
+  ```
+  00 03 00 19 00 05 00 06 00 01 00 07 00 00 00 02 00 08
+  ```
+  首先`0x0003`表示该类存在3个字段。`0x0019`为第一个字段的访问标记，`0x0019`=ACC_PUBLIC|ACC_STATIC|ACC_FINAL，因此这个字段是一个`public static final`的字段。接着，`0x0005`为常量池索引，表示字段名称，査常量池表可得字符串“TYPE”，`0x0006`为字段的类型描述，査常量池表得字符串“I”。由此，看到这是一个类型为 int，变量名为 TYPE 的`public static final`常量。接着为属性数量，值为`0x0001`，表示该字段存在1个属性，`0X0007`为属性名，通过该值确认属性的类型。査常量池第7项，为字符串“ConstantValue”，表示该属性为常量属性。之后，连续4个字节`0x00000002`为属性的剩余长度，这里表示从`0x00000002`之后的两个字节为属性的全部内容。本例中，该值为0x0008，它表示属性值需要査阅常量池第8项。査找常量池第8项，得常量 CONSTANT_Integer，值为1。所以该字段的常量值为1，类型为 int。
