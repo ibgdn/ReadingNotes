@@ -162,6 +162,7 @@
   `0x0C`表示一个 CONSTANT_NameAndType，`0x0009`表示第9项常量为名称，査常量池，可得第9项常量为 id 字符串。`0x0006`表示第6项常量，査常量表得到字符串 I，表示 int 类型。因此，该 CONSTANT_NameAndType 表示一个名称为 id，类型为 int 的表项。
 
   CONSTANT_NameAndType 的 descriptor_index 使用了一组特定的字符串来表示类型，如表所示。
+  **类型的字符串表示方法**
   字符串 |类型 |字符串  |类型
   :--|:--:|:--|:--:
   B |byte |C  |char
@@ -266,8 +267,8 @@
   在常量池后，紧跟着访问标记。该标记使用两个字节表示，用于表明该类的访问信息，如 public、final、abstract 等。
 
   每一种类型的表示都是通过设置访问标记的32位中的特定位来实现的。比如，若是 public final 的类，则该标记为 ACC_PUBLIC | ACC_FINAL。
-  
-  类 Access Flag 标记位和含义
+
+  **类 Access Flag 标记位和含义**
   标记名称  |数值 |描述
   :--|:--:|:--
   ACC_PUBLIC  |0x0001 |表示 public 类（public 类可以在包外访问）
@@ -314,7 +315,7 @@
   ```
 
   1. 首先是字段的访问标记，非常类似于类的访问标记，该字段的取值参见表
-  字段 Access Flag 标记位和含义
+  **字段 Access Flag 标记位和含义**
   标记名称  |数值 |描述
   :--|:--:|:--
   ACC_PUBLIC  |0x0001 |表示 public 字段
@@ -343,7 +344,7 @@
   ```
   常量属性的 attribute_name_index 为2字节整数，指向常量池的 CONSTANT_Utf8，并且这个字符串为“ConstantValue”。接着，为 attribute_length，它由4个字节组成，表示这个属性的剩余长度为多少。对常量属性而言，这个值恒为2。最后的 constantvalue_index 表示属性值，但值并不直接出现在属性中，而是存放在常量池中，这里的 constantvalue_index 也是指向常量池的索引。这表示，一个 int 类型字段的常量，constantvalue_index 指向的常量池类型必须是 CONSTANT_Integer。
 
-  常量数据类型和常量池类型对应关系
+  **常量数据类型和常量池类型对应关系**
   字段类型  |常量池表项类型
   :--|:--
   long  |CONSTANT_Long
@@ -356,3 +357,72 @@
   00 03 00 19 00 05 00 06 00 01 00 07 00 00 00 02 00 08
   ```
   首先`0x0003`表示该类存在3个字段。`0x0019`为第一个字段的访问标记，`0x0019`=ACC_PUBLIC|ACC_STATIC|ACC_FINAL，因此这个字段是一个`public static final`的字段。接着，`0x0005`为常量池索引，表示字段名称，査常量池表可得字符串“TYPE”，`0x0006`为字段的类型描述，査常量池表得字符串“I”。由此，看到这是一个类型为 int，变量名为 TYPE 的`public static final`常量。接着为属性数量，值为`0x0001`，表示该字段存在1个属性，`0X0007`为属性名，通过该值确认属性的类型。査常量池第7项，为字符串“ConstantValue”，表示该属性为常量属性。之后，连续4个字节`0x00000002`为属性的剩余长度，这里表示从`0x00000002`之后的两个字节为属性的全部内容。本例中，该值为0x0008，它表示属性值需要査阅常量池第8项。査找常量池第8项，得常量 CONSTANT_Integer，值为1。所以该字段的常量值为1，类型为 int。
+
+#### 9.2.7 Class 文件的方法基本结构
+  在字段之后，就是类的方法信息。方法信息和字段类似，由两部分组成：
+  ```
+    u2          methods_count;
+    method_info methods[methods_count];
+  ```
+
+  其中 methods_count 为2字节整数，表示该类中有几个方法。接着就是 methods_count 个 method_info 结构，每一个 method_info 表示一个方法，该结构如下：
+  ```
+    method_info {
+      u2              access_flags;
+      u2              name_index;
+      u2              descriptor_index;
+      u2              attributes_count;
+      attribute_info  attributes[attributes_count];
+    }
+  ```
+
+  1. access_flag 为方法的访问标记，用于标明方法的权限以及相关特性。
+     **方法访问标记取值**
+     标记名称 |值  |作用
+     :--|:--|:--
+     ACC_PUBLIC |0x0001 |public 方法
+     ACC_PRIVATE    |0x0002 |private 私有方法
+     ACC_PROTECTED  |0x0004 |protected 方法
+     ACC_STATIC |0x0008 |静态方法
+     ACC_FINAL  |0x0010 |final 方法，不可被继承重载
+     ACC_SYNCHRONIZED   |0x0020 |synchronized 同步方法
+     ACC_BRIDGE |0x0040 |由编译器产生的桥梁方法
+     ACC_VARARGS    |0x0080 |可变参数的方法
+     ACC_NATIVE |0x0100 |native 本地方法
+     ACC_ABSTRACT   |0x0400 |抽象方法
+     ACC_STRICT |0x0800 |浮点模式为 FP-strict
+     ACC_SYNTHETIC  |0x1000 |编译器产生的方法，没有源码对应
+
+  2. 在访问标记后，name_index 表示方法的名称，它是一个指向常量池的索引。descriptor_index 为方法描述符，它也是指向常量池的索引，是一个字符串，用以表示方法的签名（参数、返回值等），它基于**类型的字符串表示方法**表所示的字符串的类型表示方法，同时对方法签名的表示做了一些规定。它将函数的参数类型写在一对小括号中，并在括号右侧给出方法的返回值。比如，若有如下方法：
+     ```java
+        Object m (int i, double d, Thread t) {...}
+     ```
+     则它的方法描述符为：
+     ```
+        (IDLjava/lang/Thread;)Ljava/lang/Object;
+     ```
+     可以看到，方法的参数统一列在一对小括号中，“I”表示 int，“D”表示 double，“Ljava/lang/Thread”表示 Thread 对象。小括号右侧的 Ljava/lang/Object; 表示方法的返回值为 Object 对象。
+
+  3. 和字段类似，方法也可以附带若干个属性，用于描述一些额外信息，比如方法字节码等，attributes_count 表示该方法中属性的数量，紧接着，就是 attributes_count 个属性的描述。
+     对于属性 attribute 来说，它们的统一格式为：
+     ```
+        attribute_info {
+            u2  attribute_name_index;
+            u4  attribute_length;
+            u1  info[attribute_length];
+        }
+     ```
+     其中，attribute_name_index 表示当前 attribute 的名称，attribute_length 为当前 attribute 的剩余长度，紧接着就是 attribute_length 个字节的 byte 数组。
+     
+     **常用属性 Attribute**
+     属性 Attribute|作用
+     :--|:--
+     ConstantValue  |用于字段常量
+     Code   |表示方法的字节码
+     StackMapTable  |Code 属性的描述属性，用于字节码变量类型验证
+     Exceptions |方法的异常信息
+     SourceFile |类文件的属性，表示生成这个文件的源码
+     LineNumberTable    |Code 属性的描述属性，描述行号和字节码的对应关系
+     LocalVariableTable |Code 属性的描述属性，描述函数局部变量表
+     BootstrapMethods   |类文件的描述属性，存放类的引导方法。用于 invokeDynamic
+     StackMapTable  |Code 属性的描述属性，用于字节码类型校验
