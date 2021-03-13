@@ -426,3 +426,34 @@
      LocalVariableTable |Code 属性的描述属性，描述函数局部变量表
      BootstrapMethods   |类文件的描述属性，存放类的引导方法。用于 invokeDynamic
      StackMapTable  |Code 属性的描述属性，用于字节码类型校验
+
+#### 9.2.8 方法的执行主体——Code 属性
+  方法的主要内容存放在其属性之中，而当中最为重要的一个属性就是 Code。它存放着方法的字节码等信息，结构如下：
+  ```
+    Code_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  max_stack;
+        u2  max_locals;
+        u4  code_length;
+        u1  code[code_length];
+        u2  exception_table_length;
+        {
+            u2  start_pc;
+            u2  end_pc;
+            u2  handler_pc;
+            u2  catch_type;
+        } exception_table[exception_table_length];
+        u2  attributes_count;
+        attribute_info  attributes[attributes_count];
+    }
+  ```
+  Code 属性的第一个字段 attribute_name_index 指定了该属性的名称，它是一个指向常量池的索引，指向的类型为 CONSTANT_Utf8，对于 Code 属性来说，该值恒为“Code”。接着，attribute_length 指定了 Code 属性的长度，该长度不包括前6个字节，也就是剩余长度。
+
+  在方法执行过程中，操作数栈可能不停地变化，在整个执行过程中，操作数栈存在一个最大深度，该深度由 max_stack 表示。同理，在方法执行过程中，局部变量表也可能会不断变化。在整个执行过程中局部变量表的最大值由 max_locals 表示，它们都是2字节的无符号整数。
+
+  在 max_locals 之后，就是作为方法的最重要部分——字节码。它由 code_length 和 code[code_length] 两部分组成，code_length 表示字节码的长度，为4字节无符号整数，code[code_length] 为 byte 数组，为字节码内容本身。
+
+  在字节码之后，存放该方法的异常处理表。异常处理表告诉一个方法该如何处理字节码中可能抛出的异常。异常处理表亦由两部分组成：表项数量和内容。其中 exception_table_length 表示异常表的表项数量，exception_table[exception_table_length] 结构为异常表。表中每一行由4部分组成，分别是 start_pc、end_pc、handler_pc 和 catch_type。这4项表示从方法字节码的 start_pc 偏移量开始到 end_pc 偏移量为止的这段代码中，如果遇到了 catch_type所指定的异常，那么代码就跳转到 handler_pc 的位置执行。在这4项中，start_pc、end_pc 和 handler_pc 都是字节码的编译量，也就是在 code[code_length] 中的位置，而 catch_type 为指向常量池的索引，它指向一个 CONSTANT_Class 类，表示需要处理的异常类型。
+
+  至此，Code 属性的主体部分己经介绍完毕，但是 Code 属性中还可能包含更多信息，比如行号、局部变量表等。这些信息都以 attribute 属性的形式内嵌在 Code 属性中，即除了字段、方法和类文件可以内嵌属性外，属性本身也可以内嵌其他属性。
