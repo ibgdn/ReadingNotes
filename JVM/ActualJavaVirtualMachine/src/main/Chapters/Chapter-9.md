@@ -457,3 +457,18 @@
   在字节码之后，存放该方法的异常处理表。异常处理表告诉一个方法该如何处理字节码中可能抛出的异常。异常处理表亦由两部分组成：表项数量和内容。其中 exception_table_length 表示异常表的表项数量，exception_table[exception_table_length] 结构为异常表。表中每一行由4部分组成，分别是 start_pc、end_pc、handler_pc 和 catch_type。这4项表示从方法字节码的 start_pc 偏移量开始到 end_pc 偏移量为止的这段代码中，如果遇到了 catch_type所指定的异常，那么代码就跳转到 handler_pc 的位置执行。在这4项中，start_pc、end_pc 和 handler_pc 都是字节码的编译量，也就是在 code[code_length] 中的位置，而 catch_type 为指向常量池的索引，它指向一个 CONSTANT_Class 类，表示需要处理的异常类型。
 
   至此，Code 属性的主体部分己经介绍完毕，但是 Code 属性中还可能包含更多信息，比如行号、局部变量表等。这些信息都以 attribute 属性的形式内嵌在 Code 属性中，即除了字段、方法和类文件可以内嵌属性外，属性本身也可以内嵌其他属性。
+
+#### 9.2.9 记录行号——LineNumberTable 属性
+  Code 属性本身也包含着其他属性以进一步存储一些额外信息。首先，来看一下 LineNumberTable，它是 Code 属性的属性，用于描述 Code 属性。LineNumberTable 用来记录字节码偏移量和行号的对应关系，在软件调试时，该属性有着至关重要的作用，若没有它，则调试器无法定位到对应的源码。LineNumberTable 属性的结构如下： 
+  ```
+    LineNumberTable_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  line_number_table_length;
+        {
+            u2  start_pc;
+            u2  line_number;
+        }   line_number_table[line_number_table_length];
+    }
+  ```
+  其中，attribute_name_index 为指向常量池的索引，在 LineNumberTable 属性中，该值为“LineNumberTable”，attribute_length 为4字节无符号整数，表示属性的长度（不含前6个字节），line_number_table_length 表明了表项有多少条记录，line_number_table 为表的实际内容，它包含 line_number_table 个<start, line_number>元组，其中，为字节码偏移量，line_number 为对应的行号。
