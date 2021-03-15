@@ -472,3 +472,27 @@
     }
   ```
   其中，attribute_name_index 为指向常量池的索引，在 LineNumberTable 属性中，该值为“LineNumberTable”，attribute_length 为4字节无符号整数，表示属性的长度（不含前6个字节），line_number_table_length 表明了表项有多少条记录，line_number_table 为表的实际内容，它包含 line_number_table 个<start, line_number>元组，其中，为字节码偏移量，line_number 为对应的行号。
+
+#### 9.2.10 保存局部变量和参数——LocalVariableTable 属性
+  对 Code 属性而言，另外一个重要的属性是 LocalVariableTable，也就是局部变量表。它记录了一个方法中所有的局部变量，它的结构如下：
+  ```
+    LocalVariableTable_attribute {
+        u2  attributer_name_index;
+        u4  attributer_length;
+        u2  local_variable_table_length;
+        {
+            u2  start_pc;
+            u2  length;
+            u2  name_index;
+            u2  descriptor_index;
+            u2  index;
+        }   local_variable_table[local_variable_table_length];
+    }
+  ```
+  其中，attribute_name_index 为当前属性的名字，它是指向常量池的索引。对局部变量表而言，该值为“LocalVariableTable”，attribute_length 为属性的长度，local_variable_table_length 为局部变量表表项条目。
+
+  局部变量表的每一条记录由以下几个部分组成。
+  - start_pc、length：表示当前局部变量的开始位置（start_pc）和结束位置（start_pc + length 不含最后一个字节）。
+  - name_index：局部变量的名称，这是一个指向常量池的索引。
+  - descriptor_index：局部变量的类型描述，指向常量池的索引。使用和字段描述符一样的方式描述局部变量。
+  - index：局部变量在当前帧栈的局部变量表中的槽位。对于 long 和 double 的数据，它们会占据局部变量表中的两个槽位。
