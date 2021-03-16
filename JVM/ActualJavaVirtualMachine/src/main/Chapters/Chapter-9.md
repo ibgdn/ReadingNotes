@@ -496,3 +496,21 @@
   - name_index：局部变量的名称，这是一个指向常量池的索引。
   - descriptor_index：局部变量的类型描述，指向常量池的索引。使用和字段描述符一样的方式描述局部变量。
   - index：局部变量在当前帧栈的局部变量表中的槽位。对于 long 和 double 的数据，它们会占据局部变量表中的两个槽位。
+
+#### 9.2.11 加快字节码校验——StackMapTable 属性
+  对于JDK1.6以后的类文件，每个方法的 Code 属性还可能含有一个 StackMapTable 的属性结构。该结构中存有若干个叫做栈映射帧 （stack_map_frame）的数据。该属性不包含运行时所需的信息，仅用作 Class 文件的类型校验。
+
+  StackMapTable 的结构如下：
+  ```
+    StackMapTable_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  number_of_entries;
+        stack_map_frame entries[number_of_entries];
+    }
+  ```
+  其中，attribute_name_index 为常量池索引，恒为“StackMapTable”，attribute_length 为该属性的长度，number_of_entries 为栈映射帧的数量，最后的 entries 则为具体的内容，每一项为一个 stack_map_frame 结构。
+
+  每一个栈映射帧都是为了说明在一个特定的字节码偏移位置上，系统的数据类型是什么（包括局部变量表的类型和操作数栈的类型）。每一帧都会显式或者隐式地指定一个字节码偏移量的变化值 offset_delta，使用 offset_delta 可以计算出这一帧数据的字节码偏移位置。计算方法就是将`offset_delta + 1`和上一帧的字节码偏移量相加。如果上一帧是方法的初始帧，那么，字节码偏移量为 offset_delta 化本身。
+
+  注意：这里说的“帧”，和帧栈的帧不是同一个概念。这里更接近于一个跳转语句，跳转语句将函数划分成不同的块，每一块的概念就接近于这里所说的栈映射帧中的“帧”。
