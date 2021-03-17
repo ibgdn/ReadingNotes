@@ -514,3 +514,24 @@
   每一个栈映射帧都是为了说明在一个特定的字节码偏移位置上，系统的数据类型是什么（包括局部变量表的类型和操作数栈的类型）。每一帧都会显式或者隐式地指定一个字节码偏移量的变化值 offset_delta，使用 offset_delta 可以计算出这一帧数据的字节码偏移位置。计算方法就是将`offset_delta + 1`和上一帧的字节码偏移量相加。如果上一帧是方法的初始帧，那么，字节码偏移量为 offset_delta 化本身。
 
   注意：这里说的“帧”，和帧栈的帧不是同一个概念。这里更接近于一个跳转语句，跳转语句将函数划分成不同的块，每一块的概念就接近于这里所说的栈映射帧中的“帧”。
+
+  StackMapTable 结构中的 stack_map_frame 被定义为一个枚举值，它可能的取值如下：
+  ```
+    union stack_map_frame {
+        same_frame;
+        same_locals_l_stack_item_frame;
+        same_locals_l_stack_item_frame_extended;
+        chop_frame;
+        same_frame_extended;
+        append_frame;
+        full_frame;
+    }
+  ```
+
+  1. 第1个取值 same_frame 定义如下：
+  ```
+    same_frame {
+        u1  frame_type = SAME; /* 0-63 */
+    }
+  ```
+  它表示当前代码所在位置和上一个比较位置的局部变量表是完全相同的，并且操作数栈为空。它的取值为0-63，这个取值也是隐含的 offset_delta，表示距离上一个帧块的偏移量。
