@@ -535,3 +535,12 @@
     }
   ```
   它表示当前代码所在位置和上一个比较位置的局部变量表是完全相同的，并且操作数栈为空。它的取值为0-63，这个取值也是隐含的 offset_delta，表示距离上一个帧块的偏移量。
+
+  2. 第2个取值 same_local_l_stack_item_frame 的定义如下：
+  ```
+    same_local_l_stack_item_frame {
+        u1  frame_type = SAME_LOCALS_l_STACK_ITEM; /* 64-127 */
+        verification_type_info  stack[1];
+    }
+  ```
+  其中，frame_type 的范围为64-127，如果栈映射帧为该值，则表示当前帧和上一帧有相同的局部变量，并且操作数栈中变量数量为1。它有一个隐式的 offset_delta，使用`frame_type - 64`可以计算得来。之后的 verification_type_info 就表示该操作数中的变量类型。
