@@ -544,3 +544,50 @@
     }
   ```
   其中，frame_type 的范围为64-127，如果栈映射帧为该值，则表示当前帧和上一帧有相同的局部变量，并且操作数栈中变量数量为1。它有一个隐式的 offset_delta，使用`frame_type - 64`可以计算得来。之后的 verification_type_info 就表示该操作数中的变量类型。
+
+  3. 第3个取值 same_locals_l_stack_item_frame_extended，和 same_locals_l_stack_item_frame 含义相同，但是前者表示的 offset_delta 非常有限，如果超出范围，则需要使用 same_locals_l_stack_item_frame_extended，same_locals_l_stack_item_frame_extended 使用显式的 offset_delta。同样，在结构的最后，存放着操作数栈的数据类型，结构如下：
+  ```
+    same_locals_l_stack_item_frame_extended {
+        u1  frame_type = SAME_LOCALS_l_STACK_ITEM_EXTENDED; /* 247 */
+        u2  offset_delta;
+        varification_type_info  stack[1];
+    }
+  ```
+
+  4. 第4个取值 chop_frame 则表示操作数桟为空，当前局部变量表比前一帧少 k 个局部变量。其中，k 为`251 - frame_type`。它的结构如下：
+  ```
+    chop_frame {
+        u1  frame_type = CHOP;  /* 248-250 */
+        u2  offset_delta;
+    }
+  ```
+
+  5. 第5个取值 same_frame_extended 和 same_frame 含义一样，表示局部变量信息和上一帧相同，且操作数桟为空。但是 same_frame_extended 显示指定了 offset_delta，可以表示更大的字节偏移量。它的结构如下：
+  ```
+    same_frame_extended {
+        u1  frame_type = SAME_FRAME_EXTENDED;   /* 251 */
+        u2  offset_delta;
+    }
+  ```
+
+  6. 第6个取值 append_frame 表示当前帧比上一帧多了 k 个局部变量，且操作数栈为空。其中 k 为`frame_type - 251`。在 append_frame 的最后，还存放着增加的局部变量的类型。它的结构如下：
+  ```
+    append_frame {
+        u1  frame_type = APPEND;    /* 252 - 254 */
+        u2  offset_delta;
+        verification_type_info  locals[frame_type - 251];
+    }
+  ```
+
+  7. 以上类型均只保存了前后两个帧中变化的部分，因此可以减少数据的大小。但是，如果以上结构都无法表达帧的信息时，则可以使用第7种结构 full_frame。它不用来表示连续两个帧之间的差异，而是将局部变量表和操作数栈都做了完整的记录。它的结构如下：
+  ```
+    full_frame {
+        u1  frame_type = FULL_FRAME;    /* 255 */
+        u2  offset_delta;
+        u2  number_of_locals;
+        verification_type_info  locals[number_of_locals];
+        u2  number_of_stack_items;
+        verification_type_info  stack[number_off_stack_items];
+    }
+  ```
+  可以看到，在 full_frame 中，显示指定了 offset_delta，完整记录了局部变量表的数量（number_of_locals）、局部变量表的数据类型（locals）、操作数栈的数量（number_of_stack_items）和操作数栈的类型（stack）。
