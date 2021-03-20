@@ -591,3 +591,12 @@
     }
   ```
   可以看到，在 full_frame 中，显示指定了 offset_delta，完整记录了局部变量表的数量（number_of_locals）、局部变量表的数据类型（locals）、操作数栈的数量（number_of_stack_items）和操作数栈的类型（stack）。
+
+#### 9.2.12 Code 属性总结
+  ```mermaid
+  graph LR
+  a[Method结构 访问符 名字 描述] --> b[Code属性 最大操作数栈 最大局部变量表 方法字节码 异常处理表]
+  b --> c[LineNumberTable start_pc->line number ...]
+  b --> d[LocalVaribaleTable 局部变量范围 变量名 变量类型 槽位]
+  b --> e[StackMapTable 帧差异描述]
+  ```
