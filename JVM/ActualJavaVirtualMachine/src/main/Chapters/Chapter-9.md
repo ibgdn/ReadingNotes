@@ -600,3 +600,23 @@
   b --> d[LocalVaribaleTable 局部变量范围 变量名 变量类型 槽位]
   b --> e[StackMapTable 帧差异描述]
   ```
+
+#### 9.2.13 抛出异常——Exception 属性
+  除了 Code 属性外，每一个方法都可以有一个 Exceptions 属性，用于保存该方法可能抛出的异常信息。该属性的结构如下：
+  ```
+    Exceptions_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  number_of_exceptions;
+        u2  exception_index_table[number_of_exceptions];
+    }
+  ```
+  Exceptions 与 Code 属性中的异常表不同。Exceptions 属性表示一个方法可能抛出的异常，通常是由方法的 throws 关键字指定的。而 Code 属性中的异常表，则是异常处理机制，由 try-catch 语句生成。
+
+  下面的代码将生成带有 Exceptions 属性的方法：
+  ```java
+    public static void main (String[] args) throws java.io.IOException {
+    
+    }
+  ```
+  Exceptions 属性表中，attribute_name_index 指定了属性的名称，它为指向常量池的索引，恒为“Exceptions”，attribute_length 表示属性长度，number_of_exceptions 表示表项数量即可能抛出的异常个数，最后 exception_index_table 项罗列了所有的异常，每一项为指向常量池的索引，对应的常量为 CONSTANT_Class，为一个异常类。
