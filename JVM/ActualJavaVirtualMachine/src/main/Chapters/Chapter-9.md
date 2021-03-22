@@ -620,3 +620,15 @@
     }
   ```
   Exceptions 属性表中，attribute_name_index 指定了属性的名称，它为指向常量池的索引，恒为“Exceptions”，attribute_length 表示属性长度，number_of_exceptions 表示表项数量即可能抛出的异常个数，最后 exception_index_table 项罗列了所有的异常，每一项为指向常量池的索引，对应的常量为 CONSTANT_Class，为一个异常类。
+
+#### 9.2.15 我来自哪里——SourceFile 属性
+  SourceFile 属性属于 Class 文件的属性。它用于描述当前这个 Class 文件是由哪个源代码文件编译得来的，格式如下：
+  ```
+    SourceFile_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  sourcefile_index;
+    }
+  ```
+
+  其中，attribute_name_index 表示属性名称，为指向常量池的一个索引，这里恒为“SourceFile”。attribute_length 为属性长度，对于 SourceFile 属性来说，恒为2。最后的 sourcefile_index 表示源代码文件名，它是指向常量池的索引，为CONSTANT_Utf8类型。
