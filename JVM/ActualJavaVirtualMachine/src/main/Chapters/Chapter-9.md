@@ -632,3 +632,24 @@
   ```
 
   其中，attribute_name_index 表示属性名称，为指向常量池的一个索引，这里恒为“SourceFile”。attribute_length 为属性长度，对于 SourceFile 属性来说，恒为2。最后的 sourcefile_index 表示源代码文件名，它是指向常量池的索引，为CONSTANT_Utf8类型。
+
+#### 9.2.16 强大的动态调用——BootstrapMethods 属性
+  为了支持JDK1.7中的 invokeDynamic 指令，Java 虚拟机增加了 BootstrapMethods 属性，它用于描述和保存引导方法。引导方法可以理解成是一个査找方法的方法，invokeDynamic 需要能够在运行时根据实际情况返回合适的方法调用，而使用何种策略去査找所需要的方法，是由引导方法决定的。这里的 BootstrapMethods 属性就是用于找到调用的目标方法。该属性是 Class 文件的属性，属性结构如下：
+  ```
+    BootstrapMethods_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  num_bootstrap_methods;
+        {   u2  bootstrap_method_ref;
+            u2  num_bootstrap_arguments;
+            u2  bootstrap_arguments[num_bootstrap_arguments];
+        } bootstrap_methods[num_bootstrap_methods];
+    }
+  ```
+
+  第1个字段 attribute_name_index 表述属性名称，为指向常量池的索引。在这里为“BootstrapMethods”。第2个字段 attribute_length 为4字节码数字，表示属性的总长度（不含这前6个字节）。第3个字段 num_bootstrap_methods 表示这个类中包含的引导方法的个数。之后就是 num_bootstrap_methods 个 bootstrap_methods 引导方法。
+
+  每一个引导方法又由3个字段构成，含义如下。
+  - bootstrap_method_ref：必须是指向常量池的常数，并且入口为 CONSTANT_MethodHandle，用于指名函数。 
+  - num_bootstrap_arguments：指明引导方法的参数个数。
+  - bootstrap_arguments：引导方法的参数类型。这是一个指向常量池的索引，且常量池入口只能是：CONSTANT_String、CONSTANT_Class、CONSTANT_Integer、CONSTANT_Long、CONSTANT_Float、CONSTANT_Double、CONSTANT_MethodHandle 或者 CONSTANT_MethodType。这也表示，引导方法也只能接受以上类型的参数。
