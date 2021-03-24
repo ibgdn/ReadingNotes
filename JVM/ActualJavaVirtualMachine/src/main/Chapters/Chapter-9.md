@@ -45,7 +45,7 @@
 #### 9.2.2 Class 文件的版本
   在魔数后面，紧跟着 Class 的小版本和大版本号。这表示当前 Class 文件，是由哪个版本的编译器编译产生的。首先出现的是小版本号，是一个两个字节的无符号整数，在此之后为大版本号，也用两个字节表示。
 
-  Class 文件版本号和平台的对应
+  **Class 文件版本号和平台的对应**
   大版本（十进制）|小版本|编译器版本
   :--:|:--:|:--:
   45  |3  |1.1
@@ -653,3 +653,34 @@
   - bootstrap_method_ref：必须是指向常量池的常数，并且入口为 CONSTANT_MethodHandle，用于指名函数。 
   - num_bootstrap_arguments：指明引导方法的参数个数。
   - bootstrap_arguments：引导方法的参数类型。这是一个指向常量池的索引，且常量池入口只能是：CONSTANT_String、CONSTANT_Class、CONSTANT_Integer、CONSTANT_Long、CONSTANT_Float、CONSTANT_Double、CONSTANT_MethodHandle 或者 CONSTANT_MethodType。这也表示，引导方法也只能接受以上类型的参数。
+
+#### 9.2.17 内部类——InnerClasses 属性
+  InnerClass 属性是 Class 文件的属性，它用来描述外部类和内部类之间的联系，其结构如下：
+  ```
+    InnerClasses_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+        u2  number_of_classes;
+        {   u2  inner_class_info_index;
+            u2  outer_class_info_index;
+            u2  inner_name_index;
+            u2  inner_class_access_flags;
+        } classes[number_of_classes];
+    }
+  ```
+  其中，attribute_name_index 表示属性名称，为指向常量池的索引，这里恒为“InnerClasses”。attribute_length 为属性长度，number_of_classes 表示内部类的个数。classes[number_of_classes] 为描述内部类的表格，每一条内部类记录包含4个字段，其中，inner_class_info_index 为指向常量池的指针，它指向一个 CONSTANT_Class，表示内部类的类型。outer_class_info 表示外部类类型，也是常量池的索引。inner_name_index 表示内部类的名称，指向常量池中的CONSTANT_Utf8项。最后的 inner_class_access_flags 为内部类的访问标识符，用于指示 static 等属性。
+
+
+  **常用属性 Attribute**
+  访问标记  |值  |含义
+  :--|:--|:--
+  ACC_PUBLIC    |0x0001 |public 公告类
+  ACC_PRIVATE   |0x0002 |私有类
+  ACC_PROTECTED |0x0004 |受保护的类
+  ACC_STATIC    |0x0008 |静态内部类
+  ACC_FINAL |0x0010 |final 类
+  ACC_INTERFACE |0x0200 |接口
+  ACC_ABSTRACT  |0x0400 |抽象类
+  ACC_SYNTHETIC |0x1000 |编译器产生的，非代码产生的类
+  ACC_ANNOTATION    |0x2000 |注释
+  ACC_ENUM  |0x4000 |枚举
