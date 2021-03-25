@@ -684,3 +684,18 @@
   ACC_SYNTHETIC |0x1000 |编译器产生的，非代码产生的类
   ACC_ANNOTATION    |0x2000 |注释
   ACC_ENUM  |0x4000 |枚举
+
+#### 9.2.18 将要废弃的通知——Deprecated 属性
+  Deprecated 属性可以用在类、方法、字段等结构中，用于表示该类、方法或者字段将在未来版本中被废弃。Deprecated 属性的结构如下：
+  ```
+    Deprecated_attribute {
+        u2  attribute_name_index;
+        u4  attribute_length;
+    }
+  ```
+
+  其中，attribute_name_index 表示属性名，为指向常量池的索引，在这里恒为“Deprecated”，attribute_length 为0。当一个类、方法或者字段被标记为 Deprecated 时，就会产生这个属性。在生成的 SimpleDe 类中，就含有 Deprecated 属性，如下代码所示：
+  ```java
+    @Deprecated
+    public class SimpleDe {}
+  ```
