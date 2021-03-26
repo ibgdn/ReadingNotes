@@ -699,3 +699,11 @@
     @Deprecated
     public class SimpleDe {}
   ```
+
+### 9.3 操作字节码：走进 ASM
+  ASM 是一款 Java 字节码的操作库，它在 Java 领域是赫赫有名的函数库。不少著名的软件都依赖该库进行字节码操作。比如，AspectJ、Clojure、Eclipse、Spring 以及 CGLIB 都是 ASM 的使用者。与 CGLIB 和 Javasssit 等高层字节码库相比，ASM 的性能远远超过它们，由于它直接工作于底层，因此使用也更为灵活，功能也更为强大。但是由于其使用复杂，要求开发人员熟悉和掌握 Class 文件的基本格式和 Java 的字节码，对开发人员要求相对较高，因此很少被直接使用。
+
+#### 9.3.1 ASM 体系结构
+  其中 Opcodes 接口定义了一些常量，尤其是版本号、访问标示符、字节码等信息。ClassReader 用于读取 Class 文件，它的作用是进行 Class 文件的解析，并可以接受一个 ClassVisitor，ClassReader 会将解析过程中产生的类的部分信息，比如访问标示符、字段、方法逐个送入 ClassVisitor，ClassVisitor 在接收到对应的信息后，可以进行各自的处理。
+
+  ClassVisitor 有一个重要的子类为 ClassWriter，它负责进行 Class 文件的输出和生成。ClassVisitor 在进行字段和方法处理的时候，会委托给 FieldVisitor 和 MethodVisitor 进行处理。因此，在类的处理过程中，会创建对应的 FieldVisitor 和 MethodVisitor 对象。FieldVisitor 和 MethodVisitor 类也各自有1个重要的子类，FiledWriter 和 MethodWriter。当 ClassWriter 进行字段和方法的处理时，也是依赖这两个类进行的。
