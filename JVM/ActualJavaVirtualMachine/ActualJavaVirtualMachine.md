@@ -24,3 +24,6 @@
 
 ## 第9章 Class 文件结构
   [Class 文件结构](src/main/Chapters/Chapter-9.md)
+
+## 第10章 Class 装载系统
+[Class 装载系统](src/main/Chapters/Chapter-10.md)
