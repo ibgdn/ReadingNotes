@@ -45,4 +45,70 @@
     [Loaded java.lang.Shutdown$Lock from \jdk1.8.0_231\jre\lib\rt.jar]
     [Loaded java.net.URI from \jdk1.8.0_231\jre\lib\rt.jar]
   ```
-  由此可知，系统首先装载 Parent 类，接着再装载 Child 类。符合主动装载中的两个条件，使用 new 关键字创建类的实例会装载相关类，以及在初始化子类时，必须先初始化父类。
+  从这段日志中可以看到，ChildPR 子类确实己经被加载入系统，但是 ChildPR 的初始化却未进行。
+
+  另外一个有趣的例子是使用引用常量。在前文介绍的几种主动使用的情况中，特别注明：“当使用类或接口的静态字段时（final 常量除外）”，也就是说引用 final 常量并不会引起类的初始化。
+
+  [引用 final 常量并不会引起类的初始化](../java/com/ibgdn/chapter_10/UseFinalField.java)
+
+  运行以上代码输出结果为：
+  ```
+    CONST
+  ```
+  FinalFieldClass 类并没有因为其常量字段 constString 被引用而初始化。这是因为在 Class 文件生成时，final 常量由于其不变性，做了适当的优化。
+
+  在所有的类加载日志中，没有 FinalFieldClass 类出现，可见 javac 在编译时，将常量直接植入目标类，不再使用被引用类。
+
+  注意：**并不是在代码中出现的类，就一定会被加载或者初始化。如果不符合主动使用的条件，类就不会初始化**。
+
+#### 10.1.2 加载类
+  加载类处于类装载的第一个阶段。在加载类时，Java 虚拟机必须完成以下工作：
+
+  - 通过类的全名，获取类的二进制数据流。
+  - 解析类的二进制数据流为方法区内的数据结构。
+  - 创建 java.lang.Class 类的实例，表示该类型。
+
+  对于类的二进制数据流，虚拟机可以通过多种途径产生或获得。最一般地，虚拟机可能通过文件系统读入一个 class 后缀的文件，或者也可能读入 JAR、ZIP 等归档数据包，提取类文件。除了这些形式外，任何形式都是可以的。比如，事先将类的二进制数据存放在数据库中，或者通过类似于 HTTP 之类的协议通过网络进行加载，甚至是在运行时生成一段 Class 的二进制信息。
+
+  在获取到类的二进制信息后，Java 虚拟机就会处理这些数据，并最终转为一 java.lang.Class 的实例，java.lang.Class 实例是访问类型元数据的接口，也是实现反射的关键数据。通过 Class 类提供的接口，可以访问一个类型的方法、字段等信息。
+
+  通过 Class 类，获得了 java.lang.String 类的所有方法信息，并打印方法访问标示符以及方法签名。
+  ```java
+    public static void main(String[] args) throws Exception {
+        Class clzStr = Class.forName("java.lang.String");
+        Method[] methods = clzStr.getDeclaredMethods();
+        for (Method method : methods) {
+            String mod = Modifier.toString(method.getModifiers());
+            System.out.print(mod + " " + method.getName() + " (");
+            Class<?>[] parameters = method.getParameterTypes();
+            if (parameters.length == 0) {
+                System.out.println(")");
+            }
+            for (int i = 0; i < parameters.length; i++) {
+                char end = i == parameters.length - 1 ? ')' : ',';
+                System.out.print(parameters[i].getSimpleName() + end);
+            }
+            System.out.println();
+        }
+    }
+  ```
+
+  代码第2行，通过 Class.forName() 方法得到代表 String 类的 Class 实例。第3行通过 Class getDeclaredMethods() 方法取得类的所有方法列表。
+
+  第5行取得方法的访问标示符，并通过 Modifier.toString() 方法将访问标示符转为可读字符串。第7行取得方法的所有参数。第11行输出方法的参数。
+
+  这段代码运行后，部分输出结果如下：
+  ```
+    ...
+    public indexOf (int,int)
+    public indexOf (int)
+    static indexOf (char[],int,int,char[],int,int,int)
+    static indexOf (char[],int,int,String,int)
+    public static valueOf (int)
+    public static valueOf (long)
+    public static valueOf (float)
+    public static valueOf (boolean)
+    public static valueOf (char[])
+    public static valueOf (char[],int,int)
+    ...
+  ```
